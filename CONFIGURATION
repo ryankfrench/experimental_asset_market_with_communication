@@ -1,0 +1,628 @@
+     Copyright 2007-2011, Chris Hibbert.  All rights reserved.  This
+     file is published under the terms of the MIT license, a copy of
+     which has been included with this distribution in the LICENSE
+     file.
+
+          CONFIGURING AN EXPERIMENT USING ZOCALO
+
+Zocalo supports laboratory market experiments with a continuous double
+auction.  Traders can be given clues as to the underlying value of the
+asset being traded as the session proceeds.  Each trader sees a price
+history graph, as well as information about the existing bids and
+asks, and has the ability to enter new orders or accept existing orders.
+Traders can be given varying incentives to manipulate the market
+price.   "Forecasters" can view the price history, and try to
+determine the value based on the pattern of trading behavior.
+Communication between traders can be simulated by displaying a
+message as the result of voting between rounds.
+
+There are a few high-level configuration choices to make in planning
+an experiment using Zocalo, and several details that must be specified
+in every case.  Whatever configuration you choose, you will have to
+specify how many rounds the experiment will last and the values the
+asset will take on, list the names and roles of the participants,
+describe their initial assets and the hints they will receive through
+the rounds, and a few other details.  The normal configuration has
+prices that range from 0 to 100, though the top end of that range is
+configurable using the maxPrice parameter.
+
+There are four main configuration choices that determine the flavor of
+the market.  They control whether the traders retain their existing
+holdings through a series of sessions or start over with new assets
+each round, whether new bids must be at better prices than existing
+bids, what kinds of participants the experiment requires and whether
+the asset is a unary asset or binary coupon.  You can also run
+experiments in which some traders receive a private dividend for each
+asset they hold.  This can be instead of or in addition to the common
+value of the asset.
+
+Three variations (communication, manipulation, and loans) on the basic
+experiment are available; at most one of them can be active for any
+experiment.  In the communication treatment, traders can cast a vote
+following some trading rounds which will determine which message is
+shown to all traders the following round.  In the manipulation
+treatment, some participants have an incentive to manipulate the
+price, and judges don't trade, but try to determine the underlying
+value of the asset.  In lending markets, traders get loans based on
+their assets, which are priced according to a configurable parameter.
+
+The current interface only supports experiments in which all bids and
+asks are for a single unit.  The trader specifies only the price.  (This is
+not required by the underlying market implementation, and in fact,
+the prediction market interface allows traders to specify both price
+and quantity.  If traders should be allowed to specify quantity, this
+would be straightforward to change in the software.  Feel free to make
+changes yourself, or contact me for advice.)
+
+The parameters that control the high-level configuration are
+
+carryForward: true
+ This parameter determines whether assets are reset
+ each round.  If set to true, then trading results are retained each
+ round, and new hints provide additional information about the same
+ good.  Rewards are added to cash as dividends.
+
+ If CarryForward is set to false, traders' cash and asset values are
+ added to their score (separate from holdings) at the end of each
+ round, and they start each round with the same initial endowment of
+ cash and coupons.
+
+displayCarryForwardScores: true
+  This parameter defaults to true.  If set to false, the display of
+  carryForward scores is suppressed.
+
+actualValue:          0,          100,         40
+dividendValue:        0,          100,         40
+ The use of the dividendValue parameter (actualValue is an alternate
+ name for the same value and continues to be supported) is affected by
+ the setting of the carryForward parameter.  The parameter controls
+ the value of the asset used as the value of tickets held at the end
+ of each round or as the dividend paid out on coupons held.  If both
+ dividendValue and actualValue are present, dividendValue is used.
+ Private dividends are configured using individual payCommonDividend
+ and privateDividends fields.  (See below for details.)
+
+ Usually, the same underlying asset value will be used as the standard
+ of comparison for the forecasters as for rewarding the traders.  When
+ this isn't the case (for example, judges are asked to estimate
+ per-round values while trading is on long-term value), judge.target
+ can be specified.
+judge.target: 40,          50,    60
+
+betterPriceRequired: true
+ If this is set to "True", then traders can only
+ enter new orders that improve on the prices already displayed in the
+ book.  If they try to enter a price that is the same as the best
+ existing bid or ask, they will see an error message, and can try
+ again.  If the value is set to "false", they can enter new prices at
+ any level.  The default is "True".
+
+useUnaryAssets: true
+ This parameter controls which style of assets is
+ offered.  "true" says that all ticket holdings will be positive, and
+ that participants can only sell assets if they have some on hand.
+
+ If the parameter is set to "false", holdings can be positive or
+ negative.  The model is that there are two complementary assets,
+ which represent true and false outcomes.  One of the two will pay off
+ $1 and the other will be worthless.  Prices are displayed in terms of
+ the true outcome.  Since the outcomes and the coupons are
+ complementary, buying true is equivalent to selling false, and you
+ buy false by entering orders to sell true coupons.  Whenever the
+ prices in the double auction coincide, a trade takes place.  When
+ dividends are combined with binary assets, traders who have negative
+ holdings will be required to pay the dividends.  Another parameter,
+ requireReserves, controls whether they are required to set aside
+ reserves to cover the cost as a condition of the purchase.
+ maxDividend indicates how much reserves are required per round.  If
+ not set, the maximum actualValue/dividendValue will be used.
+
+maxDividend: 70
+
+ The parameters described above control the general format of the
+ market.  Each experiment must additionally configure the number of
+ users, their roles, what assets they will have and trade, and what
+ information they will receive over the course of the experiment.
+
+Traders with different starting assets can be configured, and
+experiments can include manipulators (who have an incentive to
+influence the price) and judges (who monitor market transactions and
+attempt to predict the actual prices).  If any manipulators are
+present, there must also be at least one judge, since manipulators'
+scores depend on the judge's predictions.
+
+When Loans are allowed, each trader will be offered a loan up to
+markToMarket.loan.ratio multiplied by the value of their assets
+(valued according to the capitalGains parameter, which can be one of
+historicCost, fundamentalValue, or the default markToMarket).
+HistoricCost says that the assets are valued according to their
+purchase price, MarkToMarket says use the last trading value in the
+market, and FundamentalValue requires that a value be specified for
+each round (e.g. FundamentalValue: 240, 200, 130, 60).  The value of
+the initial holdings in the historicCost case are determined by the
+coupon.basis setting.  You can ensure that players have to settle
+their loans before the experiment is over by specifying a value for
+loansDueInRound.
+
+------------------------------
+
+sessionTitle: CarryForward-10.11
+ This parameter will be used for the file name in which experiment
+ results are logged and reported by the summarizing scripts.
+
+rounds: 3
+ The number of rounds in the experiment.  Various fields below specify
+ values for each round.  They must have this many values separated by
+ commas or tabs.
+
+roles: judge, manipulator, blueTrader, redTrader
+ The list of roles that participants may take on.  JUDGE and
+ MANIPULATOR are special (their names cannot be changed).  All other
+ roles are different varieties of trader.  If there are any
+ manipulators present, you must have at least one forecaster, as the
+ scoring rule for manipulators relies on the average of the
+ forecasters' scores.
+
+ Endowment and tickets must be specified for each trader role and for
+ the manipulator role when they will be used.
+
+players: traderA1, traderB, traderA2, Forecaster1
+ The list of players participating.  This is what determines how many
+ accounts there will be.  Each player's role must be specified, and
+ other values are required depending on what the role is.  It is not
+ necessary that all accounts be used in every session, so you can
+ define extra players that are only used in some cases.  (For example,
+ if you can't predict exactly how many subjects will be available at
+ any session.)
+
+timeLimit: 2
+ The number of minutes each round should last.  The time remaining is
+ displayed to all participants, and the market is disabled when time
+ is up.  The experimenter starts the round, and can end it early if
+ the market seems to have settled down.  The experimenter determines
+ how long to wait for forecasters to enter their predictions, and when
+ to start the next round.
+
+maxPrice: 100
+ The default price range for experiments is from 0 to 100.  The
+ maximum price can be changed by setting the maxPrice parameter.
+
+traderA1.role: blueTrader
+traderA2.role: redTrader
+traderB.role: manipulator
+Forecaster1.role: judge
+
+ The three roles supported are trader, judge, and manipulator.
+ forecasters (judge) don't trade; their role is to watch the trading
+ and guess the underlying value of the tickets.  Multiple Trader roles
+ can be configured.  The role listed for each participant must match
+ one of the names give on the "roles:" line.
+
+ Traders can be given a hint each round about the underlying value of
+ the asset.  They are rewarded for the value of their cash and assets.
+
+ Manipulators trade and are rewarded for their holdings, plus a bonus
+ that increases as the judges' prediction gets closer to the
+ manipulator's target.  They can be given hints about the underlying
+ value, in addition to any information they receive about how their
+ bonus is determined.  The formulas for rewarding judges and
+ manipulators can each be determined in two ways
+
+ Traders and Manipulators begin the session (in the carryforward case)
+ or each round (when carryforward is false) with cash and tickets as
+ specified using endowment.<role> or tickets<role>
+endowment.blueTrader: 200
+endowment.redTrader: 300
+endowment.manipulator: 150
+tickets.blueTrader: 2
+tickets.redTrader: 5
+tickets.manipulator: 3
+
+The bonus for judges and manipulators can be specified by providing
+parameters that will be substituted into a formula.  There is an
+alternative for each of the formulas.  Both formulas depend on a
+factor and a constant.  The judge's formula is based on the square of
+the difference between the individual judge's estimate and the actual
+value.  The manipulator's formula is based on the difference between
+an individual target and the average of the judges' estimates.  Each
+expression is then multiplied by the factor and incremented by the
+constant.  The alternative for the manipulator's bonus is just the
+difference between their target and the average of the judges'
+guesses.  The alternative formula is specified by assigning the
+parameter manipulatorRewards the token "difference".
+
+#manipulatorRewards:  difference
+scoringFactor.manipulator: 2
+scoringConstant.Manipulator: 200
+ Traders are rewarded for the value of their assets at the end of each
+ round.  Manipulators are rewarded for their assets plus a bonus based
+ on the difference between their target and the average of the judges'
+ guesses.  The formula for the manipulator bonus is
+     constant - (difference * factor)
+
+scoringFactor.judge: .022
+scoringConstant.judge: 250
+ Judges are rewarded with a bonus based on the square of the
+ difference between their guess and the actual value of the tickets.
+ The Judge's bonus is
+     constant - (difference * difference * factor)
+
+
+  The Judges' bonus
+can be specified by providing a table of values corresponding to
+particular input choices.  There are two ways to restrict the judges
+input choices to particular values, either a pull-down menu or a
+slider.  With the menu, you provide an explicit list of input values,
+while with the slider only regularly spaced values are available and
+you specify the step size and the numeric labels to display.  The
+value of judgeInputChoices can either be the word "slider" or the
+numeric values to be displayed in the menu.  If "slider" is specified,
+judgeSliderStepsize and judgeSliderLabelStepsize can also be specified.
+(If not provided, they will default to 5 and 20 respectively.)
+
+judgeInputChoices: 0, 5,10,15,20,25,30,35,40, 45, 50, 55, 60, 65, 70, 75, 80, 85,90,95,100
+judgeInputChoices: slider
+judgeSliderLabelStepsize: 5
+judgeSliderStepsize: 20
+
+When input choices have been specified, judges' rewards can be given
+by an explicit list of values corresponding to each possible input
+choice.  Rewards are assigned based on the difference between each
+judge's estimate and the actualValue for the round.
+
+judgingRewards:     0,5,10,15,20,25,30,35,40,45,50,54.5,58.5,62,65,67.5,69.5,71,72,72.5,72.7
+
+initialHint: Trading has not started yet.
+ Participants see this message when they login if the session hasn't
+ started yet.  You can change the message to provide whatever
+ information is relevant.
+
+Private Dividends
+
+ You can assign private valuations to individual traders by specifying
+ payCommonDividend and  privateDividends by trader name.  Traders who
+ always or never get the common dividend can have it specified only
+ once like traderB below.  Traders who would ever get a private
+ dividend must have values specified for every round.
+
+traderA.payCommonDividend: yes, no, no
+traderB.payCommonDividend: yes
+traderA.privateDividends: 30, 60, 40
+traderB.privateDividends: 40, 80, 20
+
+------------------------------
+
+ The next set of the parameters concerning messages for the traders to
+ see require values to be specified for each round.
+
+not100: The ticket value is not 100.
+not40: The ticket value is not 40.
+notZero: The ticket value is not 0.
+raisePrice: Some players are trying to raise the apparent price
+changePrice: Some players are trying to change the apparent price
+noMessage:
+worth40: Your score will improve if the judge thinks the tickets are worth 40
+worth100: Your score will improve if the judge thinks the ticket are worth 100
+ Parameters that take string values can either be specified
+ explicitly in line, or can use tags.  Tags are defined by putting
+ the name at the beginning of a line followed by a colon.  The rest of
+ the line determines the value.  This makes it easy to reuse messages
+ several times and ensure they are the same.  None of the tags are
+ built in.    These are examples that have been used before.
+
+commonMessage:        raisePrice, changePrice, noMessage
+ The common message is shown to all participants, and remains on their
+ screen during the round.
+
+The common message can be replaced by a message telling participants
+whether the average trading price in the previous round was higher
+or lower than the dividend value.  dividendValue or actualValue
+along with both "above" and "below" messages must be defined for
+this setting to take effect.  The message can be defined to include
+the percentage difference, the absolute difference, or can omit
+those data-dependent values.  In order to include the difference as
+a percentage (in which case the dividend shouldn't be zero), insert
+the word "percent" between a pair of dollar signs in the text.  To
+print the value as the absolute difference, insert "difference".
+The dollar signs will not appear in the displayed text. To insert a
+literal dollar sign, precede it with two backslashes.  ("\\$")
+
+aboveThresholdMessage: The price is %$percent$ too high
+belowThresholdMessage: The price is $difference$ cents too low
+
+There's also a parameter to specify what value the threshold should
+take.  There are three choices currently.  "thresholdValue: dividend"
+means that the threshold each period is that period's dividend value.
+"thresholdValue: remainingDividend" means that the threshold each
+period is the total of all the dividend values over the remaining
+periods.  The third choice is to give a list of explicit values for
+the threshold for each period.
+
+thresholdValue: 200, 190, 180, 170, 160, 150, 140
+thresholdValue: remainingDividend
+thresholdValue: dividend
+
+traderA.hint:         not100,     not40,       not100
+traderB.hint:         not40,      notZero,     notZero
+manipulatorC.hint:    not100,     notZero,     notZero
+ Traders and manipulators can be given a hint each round.  If
+ carryForward is true, the hint should be additional information about
+ the assets that continue to be traded.  If carryForward is false, the
+ hint gives the trader's or manipulator's clue for the round.
+
+ The names before the period (".") should be the actual names entered
+ in the "players" parameter above.  The experiment won't work if you
+ specify player names and don't set up their hints, of if you give
+ hints for names that are omitted from the players list.
+
+manipulatorC.earningsHint: worth40, worth40,   worth100
+manipulatorC.target:  40,         40,          100
+ Manipulators have a target price that they are trying to convince the
+ forecasters is the actual value of the underlying asset.  The target
+ value is used in calculating their bonus.  The earnings hint gives
+ you the opportunity to provide an appropriate incentive.  It doesn't
+ have to be consistent with the value used in the score.  If you want
+ it to be consistent, compare the two lines carefully.
+
+------------------------------
+
+The Voting configuration provides a kind of communication between
+traders.  This condition can be enabled by specifying the following
+parameters.  You specify the messages from which the traders select
+using voteText.N, after you have indicated how many such messages
+there will be.  The most popular message will be displayed during the
+rounds indicated as "voteBeforeRounds".  votePrompt lets you specify
+the text that appears above the message.
+
+voteAlternatives: 3
+voteText.1: The price is too high
+voteText.2: The price is too low
+voteText.3: The price is correct
+voteBeforeRounds: 2, 4
+votePrompt: Please vote for a message to be displayed:<br>
+
+------------------------------
+
+Finally, there are some parameters that allow you to change the
+appearance of the screens:
+
+This parameter provides a string to override the default "Your clue",
+which describes a message given to a particular trader in an
+experiment.  If no value or an illegal value is provided the default
+will be used.
+
+messageLabel: Your clue
+
+
+This parameter provides a string to override the default "Shared
+Message", which describes a message given to all traders in an
+experiment.  If no value or an illegal value is provided the default
+will be used.
+
+commonMessageLabel: Shared Message
+
+
+The word "round" is used to describe one timed segment of an experiment session.  It is probably worth replacing it with something very visible (like "roundLabel: <font size='+2'><b>period</b></font>") and running through a complete session to see where it appears.
+
+roundLabel
+   "round"
+
+
+You can suppress the Earnings display after each round by setting
+showEarnings to false.  It defaults to true if unspecified.
+
+showEarnings: false
+
+
+Setting this parameter causes the server to list the average trade
+price over each round when it displays the scores to the subjects.
+
+displayAverages: true
+
+
+The following labels are used in displaying scores depending on configuration of the experiment.  Rather than describe each separately, the default value is shown.
+
+actualValueLabel
+   "Actual Ticket Value"
+assetsPlusBonusLabel
+   "Total<br><font size='-2'>(assets + bonus)</font>"
+averagePriceLabel
+  "Average Price"
+dividendsAddedToCashLabel
+   "Total Dividend added to Cash"
+dividendsPlusBonusLabel
+   "Total (Added to Cash)<br><font size='-2'>(dividends + bonus)</font>"
+dividendsubtractedFromReservesLabel
+   "Total Dividend subtracted from Reserves"
+dividendValueLabel
+   "Dividend Value"
+publicValueLabel
+   "Common Dividend Value"
+privateValueLabel
+   "Private Dividend Value"
+totalAssetsLabel
+   "Total Asset Value<br><font size='-2'>(cash +tickets)</font>"
+totalDividendLabel
+   "Total Dividend"
+
+
+An extra table can be displayed while scores are displayed giving an extra level of description of the outcome and scoring.  To turn it on, define an outcome for each period using eventOutcome.  The labels in the table can be defined as well.  Traders, Manipulators, and Judges have different colums.  The default values for the labels are shown.
+
+eventOutcome: Red, Green, Red, Red, Green
+
+judgeEarningsLabel: Earnings
+judgeInvestmentLabel: Investment in Black
+manipulatorEarningsLabel: Earnings<br><small>(Multiplier x Average Investment)</small>
+manipulatorInvestmentLabel: Average Investment
+
+traderEarningsLabel: Earnings<br><small>(Cash + Reserves + Shares x Value)</small>
+traderInvestmentLabel: Value
+
+---------------------------
+
+During experiments, the software displays the Zocalo logo unless the logoPath parameter is defined.  It can be blank, or contain a filename or a URL.   If you put a web-compatible file in the directory webpages/images, you can refer to it with a local reference.  The zocalo image is images/logo.zocalo.jpg
+
+#logoPath:
+#logoPath: http://zocalo.sourceforge.net/images/logo.zocalo-trans.png
+#logoPath: images/logo.zocalo.jpg
+
+#---------------------------
+
+# 1) By default, both showEarnings and showCumulativeProfits are true.  I.e. if you don’t put them in the file, they are both true.
+# 2) If showEarnings is false, then nothing in the yellow will show up (existing functionality).  This would also hide Cumulative Profits (which is in both Yellow and and Green).
+# 3) If showEarnings is true (the default), and showCumulativeProfits is false, then nothing in the green will show up.  Other yellow shows up.
+
+#showEarnings: false
+showCumulativeProfits: false
+
+#---------------------------
+
+# id.display.id: used for both chat and trading history (future)
+a1.display.id: A, B, C, D, E
+a2.display.id: B, C, D, E, F
+a3.display.id: C, D, E, F, G
+a4.display.id: D, E, F, G, H
+a5.display.id: E, F, G, H, I
+
+# is chat enabled for this session; disabled if not set to "true"
+chat.enabled: true
+
+# can participants block one another; defaults to "true"
+chat.block.enabled: true
+
+# if chat block is allowed, should the reputation score show; defaults to "true"
+chat.block.show.reputation: true
+
+# chat.timing: second ranges for each round; if 0 or blank, then off for the round
+chat.timing: 0-300; 0-20; ; 120-150; 90-120,120-130
+
+# trading.pauses: when should trading be disabled during a round
+trading.pauses: 15-30,45-60,75-90,105-120,135-150;15-30,45-60,75-90,105-120,135-150;;0-60, 90-120;240-300
+
+# contrained choices/messages for chat; order is based on number
+chat.choices.1: Not worth 50 Francs.
+chat.choices.2: Not worth 240 Francs.
+chat.choices.3: Not worth 490 Francs.
+
+# maximum size for free text entry messages
+chat.max.message.size: 160
+
+# which choices should each participant receive each round; free means free text (blank also works)
+a1.chat.choices: 1,2,3; 1,2,3; 1,2,3; ; 2,3
+a2.chat.choices: 1,2,3; 1,2,3; 1,2,3; free; 1,2
+a3.chat.choices: free; free; free; free; free
+a4.chat.choices: 1,2,3; 1,2,3; 1,2,3; ; 1,2
+a5.chat.choices: 1,2,3; 1,2,3; 1,2,3; free; 1,2
+
+# colors for chat - must be in hex format #RRGGBB
+chat.colors.for.choices: #FF8080, #FFFF99, #A3C8FF
+
+# color chart is enabled
+chat.colors.chart.enabled: true
+
+#---------------------------
+
+# hints are directly or automatically. possible values are direct (default) or auto
+# if direct (default), then per-participant hints are required (e.g. a1.hint: X, Y, Z, ...)
+# if auto, then hint.possible is required.
+# if select, then participants choose how many they want
+# if select_shuffle, then participants choose, the the clues are shuffled before assignment
+hint.distribution: auto
+
+# commas separate clues. semicolons separate rounds (e.g. X, Z;Y, Z;X, Z;Y, Z;X, Y)
+# hints are dependent on the actual value and clues (i.e. must not include "false" hints)
+# auto assignment is done at the start of each round, based on the participants who choose to participate
+hint.possible: X, Z; Y, Z ; X, Z; Y, Z; X, Y
+
+#---------------------------
+
+# is participation enabled
+participation.enabled: true
+
+# external account starting balance for each round (positive, negative, or zero)
+participation.account.amounts: 400, 300, -200, 100, 400
+
+# cost (per round) to participate
+participation.participate.cost: -10, -20, -30, -40, -50
+
+# cost (per round) for clues
+participation.clue.cost: -1, -2, , -4, -5
+
+#---------------------------
+
+# label for Participation Cash display on Trader screen.
+label.participation.cash: Participation
+
+#---------------------------
+
+# these configurations are only used if hint.possible = select or select_shuffle
+
+# how many clues do they start with (no cost) per round
+hint.select.starting: 0, 1, 1, 2, 0
+
+# how many clues are allowed per round (maximum - starting = may be purchased)
+hint.select.maximum: 2, 2, 1, 2, 0
+
+# can participants be assigned the same clue multiple times (default is false)
+hint.select.allow.repeats: false
+
+#---------------------------
+
+# templates for the participation pages (optional overrides)
+freemarker.template.participationParticipatePage: <h1>Participation</h1> \
+	<p>You have the option to participate in a one period market in which you will have the opportunity to earn money.</p> \
+	<p>Your initial cash balance for this period is ${balance} francs.</p> \
+	<#if chatState.roundParticipationCost == 0 > \
+		<p>There is no cost to participate in the market.</p> \
+	<#elseif chatState.roundParticipationCost < 0 > \
+		<p>There is a cost to participate in the market.  To participate you must pay ${-chatState.roundParticipationCost} francs.</p> \
+	<#else> \
+		<p>You will receive ${chatState.roundParticipationCost} francs if you participate.</p> \
+	</#if> \
+	<p>If you choose to not participate, then you will be able to browse the internet during this period.</p> \
+	<#if chatState.roundClueCost??> \
+		<p>Moreover, on the next screen you will have the opportunity to acquire information to help you understand the value of the asset.  If you decide to purchase information, then it will cost you ${-chatState.roundClueCost} francs.</p> \
+	</#if> \
+	<form> \
+		<#if chatState.roundParticipationCost == 0 > \
+			<p><input type="radio" name="radioParticipate" value="true"/> Yes.  I will participate.</p> \
+		<#elseif chatState.roundParticipationCost < 0 > \
+			<p><input type="radio" name="radioParticipate" value="true"/> Yes.  I will participate and pay ${-chatState.roundParticipationCost} Francs.</p> \
+		<#else> \
+			<p><input type="radio" name="radioParticipate" value="true"/> Yes.  I will participate and receive ${chatState.roundParticipationCost} Francs.</p> \
+		</#if> \
+		<p><input type="radio" id="radioParticipate" name="radioParticipate" value="false"/> No.  I do not wish to participate.</p> \
+		<p><input type="button" value="Submit" onclick="participate();"></p> \
+	</form>
+
+freemarker.template.participationCluePage: <h1>Clue</h1> \
+	<p>You have elected to participate in the market for this period.</p> \
+	<#if chatState.roundParticipationCost?? > \
+		<p>Your current balance is ${balance + chatState.roundParticipationCost} Francs.</p> \
+	<#else> \
+		<p>Your current balance is ${balance} Francs.</p> \
+	</#if> \
+	<p>You have the option to purchase information for ${-chatState.roundClueCost} francs.</p> \
+	<form> \
+		<p><input type="radio" name="radioClue" value="true"/> Yes.  I would like to purchase a clue and will pay ${-chatState.roundClueCost} Francs.</p> \
+		<p><input type="radio" name="radioClue" value="false"/> No.  I do not want a clue.</p> \
+		<p><input type="button" value="Submit" onclick="receiveClue();"></p> \
+	</form>
+
+# TODO JJDM Correct this page
+freemarker.template.participationClueSelectPage: <h1>Clue</h1> \
+	<p>You have elected to participate in the market for this period.</p> \
+	<#if chatState.roundParticipationCost?? > \
+		<p>Your current balance is ${balance + chatState.roundParticipationCost} Francs.</p> \
+	<#else> \
+		<p>Your current balance is ${balance} Francs.</p> \
+	</#if> \
+	<p>You have the option to purchase information for ${-chatState.roundClueCost} francs.</p> \
+	<form> \
+		<p><input type="radio" name="radioClue" value="true"/> Yes.  I would like to purchase a clue and will pay ${-chatState.roundClueCost} Francs.</p> \
+		<p><input type="radio" name="radioClue" value="false"/> No.  I do not want a clue.</p> \
+		<p><input type="button" value="Submit" onclick="receiveClue();"></p> \
+	</form>
+
+freemarker.template.participationFinishedPage: <h1>Waiting for Round to Begin</h1> \
+	<p>The next round will begin momentarily.  Please wait silently.</p>

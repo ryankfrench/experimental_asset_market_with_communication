@@ -1,0 +1,31 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+</head>
+<body>
+
+This package contains the classes that manage roles for experiments.  The experimental subjects are
+represented by the interface {@link net.commerce.zocalo.experiment.ExperimentSubject},
+the abstract class {@link net.commerce.zocalo.experiment.role.AbstractSubject},
+{@link net.commerce.zocalo.experiment.role.Judge} (which represents judges, who do not trade),
+and {@link net.commerce.zocalo.experiment.role.TradingSubject}, the base class for
+{@link net.commerce.zocalo.experiment.role.Manipulator} and
+{@link net.commerce.zocalo.experiment.role.Trader}.<p>
+
+The different roles that subjects may take on are represented by subclasses of
+{@link net.commerce.zocalo.experiment.role.Role}.  Each knows what information to read from the
+configuration file.  Current roles include
+{@link net.commerce.zocalo.experiment.role.JudgeRole}, {@link net.commerce.zocalo.experiment.role.ManipulatorRole}, and
+{@link net.commerce.zocalo.experiment.role.TraderRole}.  Multiple Trader roles are allowed in an experiment.
+If Manipulators are present, there must also be Judges.
+
+<br><table border=1 align=center> <tr><td valign=middle>
+&copy; Copyright 2008, 2009 Chris Hibbert.  All rights reserved.<br>
+<p>
+This software is published under the terms of the MIT license, a copy <br>
+of which has been included with this distribution in the LICENSE file.
+</td> </tr></table>
+<br>
+
+</body>
+</html>

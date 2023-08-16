@@ -1,0 +1,39 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+</head>
+<body>
+
+This package describes significant events that will be logged via <a href="http://logging.apache.org/log4j">Log4J</a>
+and <a href="http://cometd.org/">cometd</a> (an AJAX technology). The events are used to add information to the log,
+to store records in the database, to update the strip chart showing bidding activity to experimental subjects, and
+to notify the UI of significant events.  Log4J provides a general framework for connecting together reports of events
+that can be output in a variety of formats and piped dynamically without changing the call site.<p>
+
+All the event objects here descend from: {@link net.commerce.zocalo.ajax.events.Action Actions}.  They
+represent particular events, which are published using Log4J and cometd.  <p>
+
+Action objects describe trades and other changes in prices including new bids
+({@link net.commerce.zocalo.ajax.events.Bid} and {@link net.commerce.zocalo.ajax.events.Ask}), retracted bids
+({@link net.commerce.zocalo.ajax.events.OrderRemoval} and {@link net.commerce.zocalo.ajax.events.SelfDealing}), changes in the
+best bid and ask ({@link net.commerce.zocalo.ajax.events.BestBid}, and
+{@link net.commerce.zocalo.ajax.events.BestAsk}), and completed trades ({@link net.commerce.zocalo.ajax.events.Trade}).
+There are also Actions representing {@link net.commerce.zocalo.ajax.events.Transition} actions affecting experiments.<p>
+
+{@link net.commerce.zocalo.ajax.events Event}) objects are created when something significant happens in the server.<p>
+
+Events are instances of subclasses of {@link net.commerce.zocalo.ajax.events.Action}, which extends {@link org.apache.log4j.spi.LoggingEvent}.
+This makes it possible for them to be handed directly to a logger which causes them to be passed as an argument to the AppenderSkeleton's
+{@link org.apache.log4j.AppenderSkeleton#append(org.apache.log4j.spi.LoggingEvent) append(LoggingEvent)}. method.<p>
+
+<br><table border=1 align=center> <tr><td valign=middle>
+&copy; Copyright 2007-2009 Chris Hibbert.  All rights reserved.<br>
+&copy; 2006 CommerceNet Consortium, LLC.
+<p>
+This software is published under the terms of the MIT license, a copy <br>
+of which has been included with this distribution in the LICENSE file.
+</td> </tr></table>
+<br>
+
+</body>
+</html>

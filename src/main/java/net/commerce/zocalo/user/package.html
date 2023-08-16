@@ -1,0 +1,33 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+</head>
+<body>
+
+These classes provide support for {@link net.commerce.zocalo.user.User} objects.
+{@link net.commerce.zocalo.user.Warnable}
+is the base class for users that report warnings to the user.  This allows
+{@link net.commerce.zocalo.user.NonUser} (users who haven't logged in yet) to accept warning
+messages.<p>
+{@link net.commerce.zocalo.user.NonUser} are used before logging in, so there's a place to
+store warnings.  {@link net.commerce.zocalo.user.UnconfirmedUser UnconfirmedUsers} represent
+users who haven't authenticated yet.
+{@link net.commerce.zocalo.user.User} represents users in experiments.
+{@link net.commerce.zocalo.user.SecureUser} will be used for logged-in users of persistent
+markets.  Security will be provided by the {@link net.commerce.zocalo.user.PasswordUtil},
+which can generate new random tokens (encoded into readable form using
+{@link net.commerce.zocalo.user.Base64}, a stripped-down public domain
+utility), and {@link net.commerce.zocalo.user.Registry} will record user's tokens.
+</p>
+
+<br><table border=1 align=center> <tr><td valign=middle> 
+&copy; Copyright 2007, 2008 Chris Hibbert.  All rights reserved.<br>
+&copy;  2006 CommerceNet Consortium, LLC.  
+<p>
+This software is published under the terms of the MIT license, a copy <br>
+of which has been included with this distribution in the LICENSE file.
+</p></td> </tr></table>
+<br>
+
+</body>
+</html>

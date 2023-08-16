@@ -1,0 +1,139 @@
+<html>
+<head>
+<title>Transaction history</title>
+<!--
+Copyright 2007-2009 Chris Hibbert.
+Copyright 2005 CommerceNet Consortium, LLC.  All rights reserved.
+
+This software is published under the terms of the MIT license, a copy
+of which has been included with this distribution in the LICENSE file.
+-->
+    <link rel="stylesheet" type="text/css" href="chart.style.css">
+    <script type="text/javascript">var logger = console;</script>
+    <script type="text/javascript" src="../jquery-2.1.3.min.js"></script>
+    <script type="text/javascript" src="../WebSocketClient.js"></script>
+    <script type="text/javascript" src="../experiment.js"></script>
+    <script type="text/javascript" src="stripchart.js"></script>
+    <script type="text/javascript"> top.chart = chartMaker(); </script>
+</head>
+<body>
+<table id="chartTable"> <tbody>
+    <tr><td colspan=4 align=center>
+          <div class="experimentStatus" id="experimentStatus"><p><br><br></p></div>
+        </td>
+    </tr>
+    <tr>
+            <td id=leftLabels width=30><div style="position: relative; top: -208;">
+			  <div style="position: absolute; top:40;">90</div>
+			  <div style="position: absolute; top:80;">80</div>
+			  <div style="position: absolute; top:120;">70</div>
+			  <div style="position: absolute; top:160;">60</div>
+			  <div style="position: absolute; top:200;">50</div>
+			  <div style="position: absolute; top:240;">40</div>
+			  <div style="position: absolute; top:280;">30</div>
+			  <div style="position: absolute; top:320;">20</div>
+			  <div style="position: absolute; top:360;">10</div>
+				</div>
+            </td>
+            <td>
+            <div class="chart" id="chart">
+            </div>
+            </td>
+            <td width=20 id=rightLabels><div style="position: relative; top: -208;">
+			  <div style="position: absolute; top:40;">90</div>
+			  <div style="position: absolute; top:80;">80</div>
+			  <div style="position: absolute; top:120;">70</div>
+			  <div style="position: absolute; top:160;">60</div>
+			  <div style="position: absolute; top:200;">50</div>
+			  <div style="position: absolute; top:240;">40</div>
+			  <div style="position: absolute; top:280;">30</div>
+			  <div style="position: absolute; top:320;">20</div>
+			  <div style="position: absolute; top:360;">10</div>
+				</div>
+            </td>
+            <td>
+            <div class="offers" id="offers">
+            </div>
+            </td>
+    </tr>
+</tbody> </table>
+<script type="text/javascript">
+
+    function onLiveMessage(event) {
+        updateTimeRemaining(event);
+        top.chart.replaceLiveColumn(event);
+        replaceCurrentOffers(findOffers(), event);
+        updateBestPrices(event);
+    }
+
+    function onHistMessage(event) {
+        updateTimeRemaining(event);
+        top.chart.addHistoricalColumn(event);
+        removeDeletionPrice(event.traded);
+        updateStatus("");
+        callHistoricalAction();
+        reloadSubSubframe();
+    }
+
+    function onTransitionMessage(event) {
+        updateTimeRemaining(event);
+        updateStatus(event.displayText);
+        if (event.transition == "startRound") {
+            top.chart.clear_chart();
+            clear_offers(findOffers());
+            updateBestPrices({ sell: "", buy: ""});
+            callStartRoundActions();
+        } else {
+            callTransitionAction(event.transition);
+        }
+        top.chart.updateScale();
+    }
+	
+    function callService(args) {
+        var toReturn = null;
+        args["u"] = "STRIP_CHART";
+        logger.debug(args);
+        $.ajax("../service.jsp", {
+            accepts: "json",
+            async: false,
+            cache: false,
+            data: args,
+            success: function(data) { toReturn = data; },
+            error: function(error) { logger.error(error); }
+        });
+        logger.debug(toReturn);
+        return toReturn;
+    }
+
+    $(document).ready(function() {
+
+        var websocketClient = createWebSocket(function(message) {
+            var data = JSON.parse(message.data);
+			logger.debug(data);
+            if(data.topic == liveTopic) {
+                onLiveMessage(data);
+            } else if(data.topic == historicTopic) {
+                onHistMessage(data);
+            } else if(data.topic == transitionTopic) {
+                onTransitionMessage(data);
+            } else if(data.topic == "/global") {
+                if(data.id == "TIME_SYNC") {
+                    updateOnlyTimeRemaining({ timeRemaining: secondsToMmSsDisplay(data.roundTimeRemaining) });
+                }
+            }
+        });
+		
+        clear_offers(findOffers());
+
+        var chatState = callService({ a: "chatState" });
+        if(chatState != null) {
+			var message = callService({ a: "liveUpdate" });
+			onLiveMessage(message.data);
+            top.chart.updateScale(chatState.maxPrice);
+        }
+
+    });
+
+</script>
+</body>
+</html>

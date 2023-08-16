@@ -1,0 +1,66 @@
+/*
+Copyright 2005 CommerceNet Consortium, LLC.  All rights reserved.
+
+This software is published under the terms of the MIT license, a copy
+of which has been included with this distribution in the LICENSE file.
+*/
+
+h1 {
+    font-family: Verdana;
+    font-size: 28px;
+}
+.chart {
+    display: block;
+    position: relative;
+    border: 1px dotted #666600;
+    background-color: white;
+}
+.chart ul {
+    float: left;
+    margin: 0px;
+    padding: 0px;
+}
+.chart li {
+    display: block;
+    position: absolute;
+    margin: 0px;
+    padding: 0px;
+    list-style-type: none;
+    z-index: 1;
+    width: 6px;
+    height: 6px;
+}
+.sell { background-color: orange;}
+.buy { background-color: limegreen; }
+.xaction { background-color: black; }
+.traded { background-color: black; }
+.hBar {
+    position: absolute;
+    height: 1px;
+    background-color: #CCCCCC;
+    left: 0;
+    z-index: 0;
+}
+.majorBar {
+    position: absolute;
+    height: 1px;
+    background-color: black;
+    left: 0;
+    z-index: 0;
+}
+.minorBar {
+    position: absolute;
+    height: 1px;
+    background-color: #CCCCCC;
+    left: 0;
+    z-index: 0;
+}
+.candleStick {
+    position: absolute;
+    background-color: #D5D5D5;
+    z-index: 0;
+}
+.rowLabels {
+    width: 50;
+    padding: 0px;
+}

@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<!--Copyright 2009 Chris Hibbert.  All rights reserved.-->
+<!--Copyright 2006 CommerceNet Consortium, LLC.  All rights reserved.-->
+
+<!--This software is published under the terms of the MIT license, a copy-->
+<!--of which has been included with this distribution in the LICENSE file.-->
+
+<hibernate-mapping>
+    <class name="net.commerce.zocalo.ajax.dispatch.MockDatum" table="MOCKDATA">
+        <id name="id" column="DATUM_ID">
+            <generator class="increment"/>
+        </id>
+
+        <property name="title"/>
+    </class>
+</hibernate-mapping>

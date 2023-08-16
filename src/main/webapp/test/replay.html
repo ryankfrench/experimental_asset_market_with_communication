@@ -1,0 +1,395 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="../stripChart/chart.style.css">
+<!--
+Copyright 2009 Chris Hibbert.  All rights reserved.
+Copyright 2005 CommerceNet Consortium, LLC.  All rights reserved.
+
+This software is published under the terms of the MIT license, a copy
+of which has been included with this distribution in the LICENSE file.
+-->
+</head>
+<body onLoad="onload_actions()">
+
+<script type="text/javascript" src="../stripChart/stripchart.js"></script>
+
+<script type="text/javascript">
+
+var currentOffers = { sell: "", buy: ""};
+
+	function scheduleAddSell(time, amount) {
+		schedule(time, "addSell", amount);
+    }
+
+	function addSell(amount) {
+		var column = getPrices(currentOffers.sell);
+		currentOffers.sell = column.concat(amount).join(",");
+        replaceLiveColumn(currentOffers);
+        replaceCurrentOffers(findOffers(), currentOffers);
+        updateBestPrices(currentOffers);
+	}
+
+	function scheduleAddBuy(time, amount) {
+		schedule(time, "addBuy", amount);
+	}
+
+	function addBuy(amount) {
+		var column = getPrices(currentOffers.buy);
+		currentOffers.buy = column.concat(amount).join(",");
+        replaceLiveColumn(currentOffers);
+        replaceCurrentOffers(findOffers(), currentOffers);
+        updateBestPrices(currentOffers);
+	}
+
+	function scheduleAccept(time, amount) {
+		schedule(time, "accept", amount);
+	}
+
+	function accept(amount) {
+		var nextSell = getPrices(currentOffers.sell);
+		var bestSell = nextSell.pop();
+		var nextBuy = getPrices(currentOffers.buy);
+		var bestBuy = nextBuy.pop();
+		var traded;
+		if (bestBuy == amount) {
+			currentOffers.buy = nextBuy.join(",");
+			traded = bestBuy;
+		} else if (bestSell == amount) {
+			currentOffers.sell = nextSell.join(",");
+			traded = bestSell;
+		} else {
+			logDebug("accept(" + amount
+                + ") didn't find amount in buy or sell offers: sell("
+                + currentOffers.sell + "), buy("
+                + currentOffers.buy + ")");
+		}
+		addHistoricalColumn( { traded: traded } );
+//		addHistoricalColumn(
+//            { sell: currentOffers.sell, traded: traded, buy: currentOffers.buy }
+//        );
+	}
+
+	function scheduleCancel(time, amount) {
+		schedule(time, "cancel", amount);
+	}
+
+	function cancel(amount) {
+		if (currentOffers.buy.indexOf(amount) != -1) {
+			currentOffers.buy = cutOut(currentOffers.buy, amount);
+		} else if (currentOffers.sell.indexOf(amount) != -1) {
+			currentOffers.sell = cutOut(currentOffers.sell, amount);
+		} else {
+            logDebug("cancel(" + amount
+                + ") didn't find amount in buy or sell offers: sell("
+                + currentOffers.sell + "), buy(" + currentOffers.buy + ")");
+		}
+		replaceLiveColumn(
+           { sell: currentOffers.sell, buy: currentOffers.buy } );
+	}
+
+	function cutOut(string, sub) {
+		if (string == sub) {
+			return "";
+		} else if (string.indexOf(sub) == 0) {
+			var priceList = getPrices(string);
+			priceList.shift;
+			return priceList.join(",");
+		} else {
+			var start = string.indexOf(sub);
+			return string.replace("," + sub,"");
+		}
+	}
+
+var startTime;
+
+	function initializeClock() {
+		startTime = new Date();
+	}
+
+	function schedule(time, fn, arg) {
+		var times = time.split(":");
+		var secs = 60 * times[0] + 1 * times[1];
+        var readyTime = startTime.getTime() + 1000 * secs;
+		var fnCall = fn.concat("(", arg, ")");
+		var now = new Date();
+		setTimeout(fnCall, (readyTime - now.getTime()) / 4);
+	}
+ 
+	function simulateSession() {
+		initializeClock();
+		scheduleAddSell("0:08", 55);
+		scheduleAccept("0:11", 55);
+		scheduleAddBuy("0:14", 23);
+		scheduleAddBuy("0:19", 24);
+		scheduleAddSell("0:20", 85);
+		scheduleAddSell("0:20", 70);
+		scheduleCancel("0:28", 24);
+		scheduleAddBuy("0:28", 25);
+		scheduleAddBuy("0:33", 30);
+		scheduleAccept("0:33", 30);
+		scheduleAddBuy("0:37", 30);
+		scheduleAddBuy("0:40", 35);
+		scheduleAddBuy("0:45", 37);
+		scheduleAddSell("0:46", 65);
+		scheduleCancel("0:48", 25);
+		scheduleAddBuy("0:55", 38);
+		scheduleCancel("0:57", 35);
+		scheduleAccept("0:58", 38);
+		scheduleAddSell("0:59", 58);
+		scheduleAccept("1:01", 58);
+		scheduleAddSell("1:05", 60);
+		scheduleAddBuy("1:10", 40);
+		scheduleAccept("1:12", 40);
+		scheduleCancel("1:12", 30);
+		scheduleAddBuy("1:12", 45);
+		scheduleAddBuy("1:14", 50);
+		scheduleCancel("1:15", 23);
+		scheduleAccept("1:18", 50);
+		scheduleAddBuy("1:22", 50);
+		scheduleAddSell("1:23", 59);
+		scheduleAddBuy("1:26", 57);
+		scheduleCancel("1:26", 65);
+		scheduleAccept("1:30", 57);
+		scheduleAddBuy("1:41", 51);
+		scheduleAddBuy("1:43", 52);
+		scheduleCancel("1:46", 37);
+		scheduleAccept("1:49", 52);
+		scheduleCancel("1:52", 59);
+		scheduleAccept("1:54", 60);
+		scheduleCancel("1:54", 51);
+		scheduleAddSell("1:55", 56);
+		scheduleCancel("1:57", 56);
+		scheduleAddSell("2:00", 66);
+		scheduleAddBuy("2:07", 57);
+		scheduleAddSell("2:08", 60);
+		scheduleAccept("2:09", 57);
+		scheduleAddBuy("2:11", 58);
+		scheduleAccept("2:24", 58);
+		scheduleAddSell("2:24", 59);
+		scheduleAddBuy("2:31", 55);
+		scheduleCancel("2:34", 70);
+		scheduleAddBuy("2:37", 58);
+		scheduleCancel("2:37", 85);
+		scheduleAccept("2:38", 58);
+		scheduleCancel("2:38", 66);
+		scheduleAddBuy("2:43", 56);
+		scheduleAccept("2:45", 59);
+		scheduleAddSell("2:49", 59);
+		scheduleAccept("2:59", 59);
+		scheduleCancel("3:01", 60);
+		scheduleAddSell("3:02", 59);
+		scheduleAccept("3:04", 59);
+		scheduleAddSell("3:05", 89);
+		scheduleAddSell("3:10", 82);
+		scheduleAddSell("3:10", 70);
+		scheduleAddSell("3:17", 69);
+		scheduleAddBuy("3:17", 58);
+		scheduleCancel("3:20", 50);
+		scheduleCancel("3:24", 82);
+		scheduleAddSell("3:24", 68);
+		scheduleAddSell("3:28", 63);
+		scheduleCancel("3:31", 55);
+		scheduleAccept("3:32", 63);
+		scheduleAccept("3:35", 68);
+		scheduleAddSell("3:38", 67);
+		scheduleAddSell("3:44", 65);
+		scheduleAccept("3:48", 65);
+		scheduleAccept("3:49", 67);
+		scheduleAddSell("3:50", 64);
+		scheduleCancel("4:00", 56);
+    }
+
+    function onload_actions() {
+        addChartBackground(findChart());
+//        barebones_run_tests();
+		simulateSession();
+    }
+
+</script>
+<script type="text/javascript">
+
+    function onLiveMessage(event) {
+        updateTimeRemaining(event);
+        replaceLiveColumn(event);
+        replaceCurrentOffers(findOffers(), event);
+        updateBestPrices(event);
+    }
+
+    function onHistMessage(event) {
+        updateTimeRemaining(event);
+        addHistoricalColumn(event);
+        updateStatus("");
+        reloadSubSubframe('transaction');
+    }
+
+    function onTransitionMessage(event) {
+        updateTimeRemaining(event);
+        updateStatus(event.displayText);
+        reloadSubSubframe(event.transition);
+        if (event.transition == "startRound") {
+            clear_chart();
+            clear_offers(findOffers());
+            updateBestPrices({ sell: "", buy: ""});
+            callStartRoundActions();
+        } else {
+            callTransitionAction(event.transition);
+        }
+    }
+
+	top.updateBestBuyPrice = function(newValue) {
+			updateInputValue('sellMarketOrderForm', 'price', newValue);
+		};
+	top.updateBestSellPrice = function(newValue) {
+			updateInputValue('buyMarketOrderForm', 'price', newValue);
+		};
+</script>
+
+<table cellspacing=0 cellpadding=0 border=0> <tbody>
+  <tr>
+    <td width="590" bgcolor="FFFFCC">
+        <table cellspacing=0 cellpadding=0><tbody>
+            <tr><td>
+				<table> <tbody>
+					<tr><td colspan=2 align=center>
+						  <div class="experimentStatus" id="experimentStatus"><p><br><br></p></div>
+						</td>
+					</tr>
+					<tr>
+							<td><table style="height:400px">
+									<tr><td nowrap height="18px">&nbsp;</td></tr>
+									<tr><td nowrap height="37px">90</td></tr>
+									<tr><td nowrap height="37px">80</td></tr>
+									<tr><td nowrap height="37px">70</td></tr>
+									<tr><td nowrap height="37px">60</td></tr>
+									<tr><td nowrap height="37px">50</td></tr>
+									<tr><td nowrap height="37px">40</td></tr>
+									<tr><td nowrap height="37px">30</td></tr>
+									<tr><td nowrap height="37px">20</td></tr>
+									<tr><td nowrap height="37px">10</td></tr>
+									<tr><td nowrap height="17px">&nbsp;</td></tr>
+								</table>
+							</td>
+							<td>
+							<div class="chart" id="chart">
+							</div>
+							</td>
+							<td><table style="height:400px">
+									<tr><td nowrap height="18px">&nbsp;</td></tr>
+									<tr><td nowrap height="37px">90</td></tr>
+									<tr><td nowrap height="37px">80</td></tr>
+									<tr><td nowrap height="37px">70</td></tr>
+									<tr><td nowrap height="37px">60</td></tr>
+									<tr><td nowrap height="37px">50</td></tr>
+									<tr><td nowrap height="37px">40</td></tr>
+									<tr><td nowrap height="37px">30</td></tr>
+									<tr><td nowrap height="37px">20</td></tr>
+									<tr><td nowrap height="37px">10</td></tr>
+									<tr><td nowrap height="17px">&nbsp;</td></tr>
+								</table>
+							</td>
+							<td>
+							<div class="offers" id="offers">
+							</div>
+							</td>
+					</tr>
+				</tbody> </table>
+            </td></tr><tr><td height=100>
+            <center><img src="../../images/logo.zocalo.jpg" height=81 width=250 align="top"></center>
+            </td></tr><tr><td height=150>
+            &nbsp;
+            </td></tr>
+        </tbody></table>
+    </td>
+    <td width="420" bgcolor="CCFFCC">
+		<center><h3>Orders</h3></center>
+
+<table align="center" bgcolor="#dadbec" border="0" cellpadding="8" cellspacing="3">
+ <tbody>
+   <tr valign="top">
+	 <td>Submit New Order</td>
+	 <td>
+	   <form method="post" class="buyNewOrderForm"
+		  id="buyNewOrderForm" action="TraderSubFrame.jsp">
+			 <input name="quantity" value="1" type="hidden">
+			 <input name="userName" value="traderA1" type="hidden">
+			 <input name="action" value="buy" type="submit">
+			 <input name="orderType" value="newOrder" type="hidden">
+			 <input size="3" name="price" type="text">
+	   </form>
+	 </td>
+	 <td>
+	   <form method="post" class="sellNewOrderForm"
+		  id="sellNewOrderForm" action="TraderSubFrame.jsp">
+			 <input name="quantity" value="1" type="hidden">
+			 <input name="userName" value="traderA1" type="hidden">
+			 <input name="action" value="sell" type="submit">
+			 <input name="orderType" value="newOrder" type="hidden">
+			 <input size="3" name="price" type="text">
+	   </form>
+	 </td>
+   </tr>
+ <tr>
+   <td>Immediate Order</td>
+   <td>
+	 <form method="post" class="buyMarketOrderForm"
+		   id="buyMarketOrderForm" action="TraderSubFrame.jsp">
+		 <input name="quantity" value="1" type="hidden">
+		 <input name="userName" value="traderA1" type="hidden">
+		 <input disabled="disabled" name="action" value="buy" type="submit">
+		 <input name="orderType" value="marketOrder" type="hidden">
+		 <input readonly="readonly" style="background-color: lightGray;"
+				size="3" name="price" value="" type="text">
+	 </form>
+   </td>
+   <td>
+	 <form method="post" class="sellMarketOrderForm"
+		   id="sellMarketOrderForm" action="TraderSubFrame.jsp">
+	   <input name="quantity" value="1" type="hidden">
+	   <input name="userName" value="traderA1" type="hidden">
+	   <input disabled="disabled" name="action" value="sell" type="submit">
+	   <input name="orderType" value="marketOrder" type="hidden">
+	   <input readonly="readonly" style="background-color: lightGray;"
+			  size="3" name="price" value="" type="text">
+     </form>
+    </td>
+  </tr>
+ </tbody>
+</table>
+
+		<br>
+
+		<hr noshade color="black">
+
+		<center><h3>Your Holdings</h3></center>
+
+<table align="center" border="1" cellpadding="3" cellspacing="0">
+    <tbody><tr><td>Cash</td><td>200</td></tr>
+    <tr><td>Shares</td><td>2</td></tr>
+</tbody></table>
+
+<hr color="black">
+
+<center><h3>Information</h3></center>
+
+<table align="center" border="0" cellpadding="5" cellspacing="0">
+  <tbody><tr><td>
+    <table align="center" border="0" cellpadding="2" cellspacing="0">
+        <tbody><tr><td align="center">Your clue:</td></tr>
+            <tr><td align="center"><b>The ticket value is not 100.</b></td></tr>
+    </tbody></table>
+  </td></tr>
+
+  <tr><td>
+    <table align="center" border="0" cellpadding="2" cellspacing="0">
+        <tbody><tr><td align="center">Shared Message:</td></tr>
+            <tr><td>
+				<b>Some traders receive a bonus based on a Forecasters
+				decision</b>
+			</td></tr>
+    </tbody></table>
+  </td></tr>
+</tbody></table>
+
+</body>
+</html>

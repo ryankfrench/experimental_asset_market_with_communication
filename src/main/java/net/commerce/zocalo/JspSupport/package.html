@@ -1,0 +1,50 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+</head>
+<body>
+
+Support for generating web pages using JSP (Java Server Pages).  These classes support
+both the lab experiment configuration and the prediction markets.  The hierarchy
+organizes these classes according to the user's representation.
+{@link net.commerce.zocalo.JspSupport.ReloadablePage} is the abstract base class for all the
+classes that support html page generation.  Its only concrete subclass is
+{@link net.commerce.zocalo.experiment.config.ConfigEditor}, which has no user model currently.
+Abstract subclasses {@link net.commerce.zocalo.JspSupport.NamedUserPage} and
+{@link net.commerce.zocalo.JspSupport.UserPage} support pages whose users are represented respectively
+by their name or a {@link net.commerce.zocalo.user.SecureUser} object.  NamedUserPage has two abstract
+subclasses, {@link net.commerce.zocalo.JspSupport.ExperimentPage} which
+supports the jsp pages for experiments, and {@link net.commerce.zocalo.JspSupport.LoginScreen}, which
+supports the screens that allow users to create an account
+({@link net.commerce.zocalo.JspSupport.AccountCreationScreen}) or login
+({@link net.commerce.zocalo.JspSupport.WelcomeScreen}).  (They need a user model in order
+to display error messages during the process.)  {@link net.commerce.zocalo.JspSupport.TradeSupport} is
+used by both ClaimPurchase and TraderScreen, and some methods useful for trading.<p>
+
+{@link net.commerce.zocalo.service.ServerUtil} is the parent of classes that read config files,
+while {@link net.commerce.zocalo.service.ServletUtil} provides support for classes that configure
+<a href="http://www.mortbay.org/jetty/">jetty</a> servers to handle servlets, etc.<p>
+
+The JSP screens for experiments
+include {@link net.commerce.zocalo.JspSupport.ExperimenterScreen} (Experimenter's control console),
+{@link net.commerce.zocalo.JspSupport.TraderScreen} (traders and manipulators), and
+{@link net.commerce.zocalo.JspSupport.JudgeScreen} (judges).<p>
+
+The Prediction Markets are supported by {@link net.commerce.zocalo.JspSupport.AccountDisplay}
+(account status and holdings), {@link net.commerce.zocalo.JspSupport.MarketDisplay} (access to
+active and closed markets), {@link net.commerce.zocalo.JspSupport.ClaimPurchase} (trading in
+a market), {@link net.commerce.zocalo.JspSupport.MarketCreation} (creating new Markets), and
+{@link net.commerce.zocalo.JspSupport.TradeHistory} (reviewing past trades).
+{@link net.commerce.zocalo.service.AllMarkets} is the main() entry point for the prediction
+markets, and provides access to the database and configuration info.<p>
+
+Two Interfaces are here to support testing.  
+
+<br><table border=1 align=center> <tr><td valign=middle> &copy;
+Copyright 2007, 2008 Chris Hibbert; &copy; 2006 CommerceNet Consortium,
+LLC.  All rights reserved.  <p> This software is published under the
+terms of the MIT license, a copy <br> of which has been included with
+this distribution in the LICENSE file.  </td> </tr></table> <br>
+
+</body>
+</html>

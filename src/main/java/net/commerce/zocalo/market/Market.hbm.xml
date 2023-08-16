@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<!--Copyright 2007-2009 Chris Hibbert.  All rights reserved.-->
+<!--Copyright 2006 CommerceNet Consortium, LLC.  All rights reserved.-->
+
+<!--This software is published under the terms of the MIT license, a copy-->
+<!--of which has been included with this distribution in the LICENSE file.-->
+
+<hibernate-mapping package="net.commerce.zocalo.market">
+    <class name="Market" table="MARKET">
+        <cache usage="read-write"/>
+        <id name="id" column="MARKETS_ID">
+            <generator class="increment"/>
+        </id>
+
+        <discriminator column="MARKET_TYPE" type="string"/>
+
+        <property name="priceBetteringRequired" />
+        <property name="wholeShareTradingOnly" />
+        <property name="lastTrade" />
+        <property name="marketClosed" />
+        <many-to-one name="owner" not-null="true" class="net.commerce.zocalo.user.SecureUser"/>
+
+        <many-to-one name="couponMint" cascade="all" not-null="true" class="net.commerce.zocalo.currency.CouponBank" />
+        <one-to-one name="book" property-ref="market" />
+        <one-to-one name="maker" property-ref="market" />
+        <many-to-one name="outcome" column="Outcome_ID" unique="true" />
+        <many-to-one name="claim" not-null="true" class="net.commerce.zocalo.claim.Claim" />
+        <component name="maxPrice" unique="false" class="net.commerce.zocalo.currency.Price" >
+            <property column="maxPrice" name="quant"/>
+            <component name="maxValue" unique="false" class="net.commerce.zocalo.currency.Quantity" >
+                <property column="maxPriceMax" name="quant"  />
+            </component>
+        </component>
+
+        <subclass name="BinaryMarket" discriminator-value="Bin">
+        </subclass>
+
+        <subclass name="UnaryMarket" discriminator-value="Unary">
+        </subclass>
+
+        <subclass name="MultiMarket" discriminator-value="Multi" />
+
+    </class>
+</hibernate-mapping>

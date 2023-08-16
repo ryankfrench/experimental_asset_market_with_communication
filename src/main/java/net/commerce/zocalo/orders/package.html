@@ -1,0 +1,28 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+</head>
+<body>
+
+These classes describe market orders stored (in a book) for later use.
+{@link net.commerce.zocalo.orders.Order Orders} represent an order, while
+{@link net.commerce.zocalo.orders.SortedOrders} represents a collection of Orders on a single position
+that can find the best order and report on the best price and quantity available at that price.
+{@link net.commerce.zocalo.orders.OrdersIterator} iterates orders by price.<p>
+
+{@link net.commerce.zocalo.JspSupport.printOrders.OrdersPrintStrategy} is the base class for three classes that
+provide different strategies for printing orders interchangeably: 
+{@link net.commerce.zocalo.JspSupport.printOrders.PQOrdersPrintStrategy},
+{@link net.commerce.zocalo.JspSupport.printOrders.PriceOnlyOrdersPrintStrategy}, and
+{@link net.commerce.zocalo.JspSupport.printOrders.NoCancelOrdersPrintStrategy}.
+
+<br><table border=1 align=center> <tr><td>
+&copy; Copyright 2007 Chris Hibbert.  All rights reserved.<br>
+&copy; 2006 CommerceNet Consortium, LLC.  
+<p>
+This software is published under the terms of the MIT license, a copy <br>
+of which has been included with this distribution in the LICENSE file.
+</td> </tr></table>
+<br>
+</body>
+</html>

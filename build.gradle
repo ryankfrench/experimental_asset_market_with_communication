@@ -1,0 +1,141 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+
+apply plugin: 'war'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+apply plugin: 'maven'
+
+compileJava {
+//	options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+}
+
+test {
+	filter {
+		includeTestsMatching "jjdm.zocalo.*"
+	}
+}
+
+sourceCompatibility = 1.8
+version = '00.01'
+jar {
+	manifest {
+		attributes 'Implementation-Title': 'Zocalo', 'Implementation-Version': version
+	}
+}
+repositories {
+	mavenCentral()
+}
+
+configurations {
+	compile.exclude module: 'servlet-api'
+}
+
+task writeNewPom {
+	doLast {
+		pom {
+			project {
+				groupId 'io.jjdm'
+				version '1.0-SNAPSHOT'
+				name 'Zocalo Experimental Trading'
+				url 'http://maven.apache.org'
+				packaging 'war'
+			}
+		}.writeTo("newpom.xml")
+	}
+}
+
+dependencies {
+	compile 'javax.activation:activation:1.1.1'
+	compile 'ant:ant:1.6.1'
+	compile 'antlr:antlr:2.7.5'
+	compile 'asm:asm-attrs:1.5.3'
+	compile 'asm:asm:1.5.3'
+	compile 'cglib:cglib:2.1'
+	compile 'org.mortbay.jetty:cometd-api:0.9.20080221' // dojox classes for cometd
+	compile 'org.mortbay.jetty:cometd-bayeux:6.1.11'
+	compile 'commons-codec:commons-codec:1.3'
+	compile 'commons-collections:commons-collections:3.2'
+	compile 'commons-el:commons-el:1.0'
+	compile 'commons-fileupload:commons-fileupload:1.2'
+	compile 'commons-httpclient:commons-httpclient:3.1'
+	compile 'commons-io:commons-io:1.3.2'
+	compile 'commons-lang:commons-lang:2.3'
+	compile 'commons-logging:commons-logging:1.1'
+	compile 'commons-logging:commons-logging-api:1.0.3'
+	compile 'dom4j:dom4j:1.6'
+	compile 'ehcache:ehcache:1.1'
+	compile 'org.hibernate:hibernate:3.0.5'
+	compile 'org.hsqldb:hsqldb:1.8.0.10' // hsqldb.jar
+	compile 'jfree:jcommon:1.0.0-rc1'
+	compile 'jfree:jfreechart:1.0.0' // jfreechart-1.0.0-rc1.jar
+	compile 'javax.transaction:jta:1.1' // jta.jar
+	compile 'log4j:log4j:1.2.16'
+	compile 'javax.mail:mail:1.4.1'
+	compile 'org.antlr:stringtemplate:3.0' // stringtemplate.jar
+	compile 'org.apache.ws.commons.util:ws-commons-util:1.0.2'
+	compile 'org.apache.xmlrpc:xmlrpc-client:3.1'
+	compile 'org.apache.xmlrpc:xmlrpc-common:3.1'
+	compile 'org.apache.xmlrpc:xmlrpc-server:3.1'
+	providedCompile	'javax.servlet:javax.servlet-api:3.1.0'
+	providedCompile 'org.apache.tomcat:tomcat-websocket-api:8.0.9'
+	testCompile 'junit-addons:junit-addons:1.4'
+	testCompile 'junit:junit:4.10' // junit.jar
+
+	compile	'com.google.code.gson:gson:2.3'
+	compile 'com.google.guava:guava:18.0'
+	compile 'org.freemarker:freemarker:2.3.23'
+}
+
+task tomcat(type: Sync) {
+	into "${System.env.CATALINA_HOME}/zocalo"
+	with war
+/*
+	def links = []
+	def expRoot = new File("src/main/webapp/")
+	expRoot.eachFile { links << it.name }
+
+	doFirst {
+		println "Removing symlinks"
+		links.each {
+			def target = new File("${System.env.CATALINA_HOME}/zocalo/${it}")
+			def source = new File("src/main/webapp/${it}")
+			if(target.exists()) {
+				if(Os.isFamily(Os.FAMILY_WINDOWS)) {
+					def removeCommand = "del /q \"${target.absolutePath}\""
+					if(source.directory) {
+						removeCommand = "rd \"${target.absolutePath}\""
+					}
+					println removeCommand
+					exec { commandLine "cmd", '/c', removeCommand }
+				} else {
+					def removeCommand = "rm \"${target.absolutePath}\""
+					println removeCommand
+					exec { commandLine "bash", "-c", removeCommand }
+				}
+			}
+		}
+	}
+
+	doLast {
+		println "Adding symlinks"
+		links.each {
+			def target = new File("${System.env.CATALINA_HOME}/zocalo/${it}")
+			def source = new File("src/main/webapp/${it}")
+			if(Os.isFamily(Os.FAMILY_WINDOWS)) {
+				def addCommand = "mklink \"${target.absolutePath}\" \"${source.absolutePath}\""
+				if(source.directory) {
+					addCommand = "mklink /D \"${target.absolutePath}\" \"${source.absolutePath}\""
+				}
+				println addCommand
+				exec { commandLine "cmd", '/c', addCommand }
+			} else {
+				// Linux does not like symbolic links inside the home directory - not developing here anyway
+				source = new File("${System.env.CATALINA_HOME}/zocalo/${it}")
+				def addCommand = "ln -s \"${source.absolutePath}\" \"${target.absolutePath}\""
+				println addCommand
+				exec { commandLine "bash", "-c", addCommand }
+			}
+		}
+	}
+*/
+}

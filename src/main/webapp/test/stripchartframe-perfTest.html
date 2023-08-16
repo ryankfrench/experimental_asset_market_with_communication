@@ -1,0 +1,177 @@
+<html>
+<head>
+<title>Transaction history</title>
+<!--
+Copyright 2008, 2009 Chris Hibbert.  All rights reserved.
+Copyright 2005 CommerceNet Consortium, LLC.  All rights reserved.
+
+This software is published under the terms of the MIT license, a copy
+of which has been included with this distribution in the LICENSE file.
+-->
+<link rel="stylesheet" type="text/css" href="../stripChart/chart.style.css">
+</head>
+<body onLoad="onload_actions()">
+<script type="text/javascript" src="../stripChart/stripchart.js"></script>
+<script type="text/javascript" src="../dojo/dojo/dojo.js"></script>
+<script type="text/javascript" src="../dojo/dojox/cometd.js"></script>
+<script type="text/javascript">
+    dojo.require("dojox.cometd");
+</script>
+<script type="text/javascript">
+
+    function onLiveMessage(msg) {
+        var event = msg.data;
+        updateTimeRemaining(event);
+        replaceLiveColumn(event);
+        replaceCurrentOffers(findOffers(), event);
+        updateBestPrices(event);
+    }
+
+    function onHistMessage(msg) {
+        var event = msg.data;
+        updateTimeRemaining(event);
+        addHistoricalColumn(event);
+        reloadSubSubframe(event.transition);
+    }
+
+    function onTransitionMessage(msg) {
+        var event = msg.data;
+        updateTimeRemaining(event);
+        updateStatus(event);
+        reloadSubSubframe(event.transtition);
+        if (event.transition == "startRound") {
+            clear_chart();
+            clear_offers(findOffers());
+            updateBestPrices({ sell: "", buy: ""});
+            callStartRoundActions();
+        } else {
+            callTransitionAction(event.transition);
+        }
+    }
+
+    function onload_actions() {
+        clear_offers(findOffers());
+
+        addChartBackground();
+        onLiveMessage( { sell: "80,75", buy: "54,45,40,10"});
+        onLiveMessage( { sell: "80,75", buy: "54,45,40"});
+        onHistMessage( { sell: "80,73", traded: "75", buy: "54,45,40"});
+        onLiveMessage( { sell: "80,73", buy: "54,45,40,10"});
+        onLiveMessage( { sell: "80,73", buy: "54,45,40"});
+        onHistMessage( { sell: "80,71", traded: "73", buy: "54,45,40"});
+        onLiveMessage( { sell: "80,71", buy: "54,45,40,10"});
+        onLiveMessage( { sell: "80,71", buy: "54,45,40"});
+        onHistMessage( { sell: "80,69", traded: "71", buy: "54,45,40"});
+        onLiveMessage( { sell: "80,69", buy: "54,45,40,10"});
+        onLiveMessage( { sell: "80,69", buy: "54,45,40"});
+        onHistMessage( { sell: "80,67", traded: "69", buy: "54,45,40"});
+        onLiveMessage( { sell: "80,67", buy: "54,45,40,10"});
+        onLiveMessage( { sell: "80,67", buy: "54,45,40"});
+        onHistMessage( { sell: "80,65", traded: "67", buy: "54,45,40"});
+        onLiveMessage( { sell: "80,65", buy: "54,45,40,10"});
+        onLiveMessage( { sell: "80,65", buy: "54,45,40"});
+        onHistMessage( { sell: "80,63", traded: "65", buy: "54,45,40"});
+        onLiveMessage( { sell: "80,63", buy: "54,45,40"});
+        onLiveMessage( { sell: "80,63", buy: "54,45,40,10"});
+        onHistMessage( { sell: "80,61", traded: "63", buy: "54,45,40"});
+        onLiveMessage( { sell: "80,61", buy: "54,45,40,10"});
+        onLiveMessage( { sell: "80,61", buy: "54,45,40"});
+        onHistMessage( { sell: "80,59", traded: "61", buy: "54,45,40"});
+        onLiveMessage( { sell: "80,59", buy: "54,45,40,10"});
+        onLiveMessage( { sell: "80,59", buy: "54,45,40"});
+        onHistMessage( { sell: "80,57", traded: "59", buy: "54,45,40"});
+        onLiveMessage( { sell: "80,57", buy: "54,45,40"});
+        onLiveMessage( { sell: "80,57", buy: "54,45,40,10"});
+        onHistMessage( { sell: "80,55", traded: "57", buy: "54,45,40"});
+        onLiveMessage( { sell: "80,55", buy: "52,45,40"});
+        onLiveMessage( { sell: "80,55", buy: "52,45,40,10"});
+        onHistMessage( { sell: "80,55", traded: "54", buy: "52,45,40"});
+        onLiveMessage( { sell: "80,55", buy: "50,45,40,10"});
+        onLiveMessage( { sell: "80,55", buy: "50,45,40"});
+        onHistMessage( { sell: "80,55", traded: "53", buy: "48,45,40"});
+        onLiveMessage( { sell: "80,55", buy: "48,45,40"});
+        onLiveMessage( { sell: "80,55", buy: "48,45,40,10"});
+        onHistMessage( { sell: "80,57", traded: "55", buy: "48,45,40"});
+        onLiveMessage( { sell: "80,57", buy: "48,45,40,10"});
+        onLiveMessage( { sell: "80,57", buy: "48,45,40"});
+        onHistMessage( { sell: "80,59", traded: "57", buy: "48,45,40"});
+        onLiveMessage( { sell: "80,59", buy: "48,45,40"});
+        onLiveMessage( { sell: "80,59", buy: "48,45,40,10"});
+        onHistMessage( { sell: "80,61", traded: "59", buy: "48,45,40"});
+        onLiveMessage( { sell: "80,61", buy: "48,45,40,10"});
+        onLiveMessage( { sell: "80,61", buy: "48,45,40"});
+        onHistMessage( { sell: "80,63", traded: "61", buy: "48,45,40"});
+        onLiveMessage( { sell: "80,63", buy: "48,45,40"});
+        onLiveMessage( { sell: "80,63", buy: "48,45,40,10"});
+        onHistMessage( { sell: "80,65", traded: "63", buy: "48,45,40"});
+        onLiveMessage( { sell: "80,65", buy: "48,45,40,10"});
+        onLiveMessage( { sell: "80,65", buy: "48,45,40"});
+        onHistMessage( { sell: "80,67", traded: "65", buy: "48,45,40"});
+        onLiveMessage( { sell: "80,67", buy: "48,45,40"});
+        onLiveMessage( { sell: "80,67", buy: "48,45,40,10"});
+        onHistMessage( { sell: "80,69", traded: "67", buy: "48,45,40"});
+        onLiveMessage( { sell: "80,69", buy: "48,45,40,10"});
+        onLiveMessage( { sell: "80,69", buy: "48,45,40"});
+        onHistMessage( { sell: "80,71", traded: "69", buy: "48,45,40"});
+        onLiveMessage( { sell: "80,71", buy: "48,45,40"});
+        onLiveMessage( { sell: "80,71", buy: "48,45,40,10"});
+        onHistMessage( { sell: "80,73", traded: "71", buy: "48,45,40"});
+        onLiveMessage( { sell: "80,73", buy: "48,45,40,10"});
+        onLiveMessage( { sell: "80,73", buy: "48,45,40"});
+        onHistMessage( { sell: "80,75", traded: "73", buy: "48,45,40"});
+        onLiveMessage( { sell: "80,75", buy: "48,45,40"});
+        onLiveMessage( { sell: "80,75", buy: "48,45,40,10"});
+        onHistMessage( { sell: "80,77", traded: "75", buy: "48,45,40"});
+        onLiveMessage( { sell: "80,77", buy: "48,45,40"});
+        onLiveMessage( { sell: "80,77", buy: "48,45,40,10"});
+        onHistMessage( { sell: "80,79", traded: "77", buy: "48,45,40"});
+        onLiveMessage( { sell: "80,79", buy: "48,45,40"});
+
+    }
+</script>
+<table> <tbody>
+    <tr><td colspan=2 align=center>
+          <div class="experimentStatus" id="experimentStatus"><p><br><br></p></div>
+        </td>
+    </tr>
+    <tr>
+            <td><table style="height:400px">
+                    <tr><td nowrap height="18px">&nbsp;</td></tr>
+                    <tr><td nowrap height="37px">90</td></tr>
+                    <tr><td nowrap height="37px">80</td></tr>
+                    <tr><td nowrap height="37px">70</td></tr>
+                    <tr><td nowrap height="37px">60</td></tr>
+                    <tr><td nowrap height="37px">50</td></tr>
+                    <tr><td nowrap height="37px">40</td></tr>
+                    <tr><td nowrap height="37px">30</td></tr>
+                    <tr><td nowrap height="37px">20</td></tr>
+                    <tr><td nowrap height="37px">10</td></tr>
+                    <tr><td nowrap height="17px">&nbsp;</td></tr>
+                </table>
+            </td>
+            <td>
+            <div class="chart" id="chart">
+            </div>
+            </td>
+            <td><table style="height:400px">
+                    <tr><td nowrap height="18px">&nbsp;</td></tr>
+                    <tr><td nowrap height="37px">90</td></tr>
+                    <tr><td nowrap height="37px">80</td></tr>
+                    <tr><td nowrap height="37px">70</td></tr>
+                    <tr><td nowrap height="37px">60</td></tr>
+                    <tr><td nowrap height="37px">50</td></tr>
+                    <tr><td nowrap height="37px">40</td></tr>
+                    <tr><td nowrap height="37px">30</td></tr>
+                    <tr><td nowrap height="37px">20</td></tr>
+                    <tr><td nowrap height="37px">10</td></tr>
+                    <tr><td nowrap height="17px">&nbsp;</td></tr>
+                </table>
+            </td>
+            <td>
+            <div class="offers" id="offers">
+            </div>
+            </td>
+    </tr>
+</tbody> </table>
+</body>
+</html>

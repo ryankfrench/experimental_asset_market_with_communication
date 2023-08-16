@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<!--Copyright 2009 Chris Hibbert.  All rights reserved.-->
+<!--Copyright 2006 CommerceNet Consortium, LLC.  All rights reserved.-->
+
+<!--This software is published under the terms of the MIT license, a copy-->
+<!--of which has been included with this distribution in the LICENSE file.-->
+
+<hibernate-mapping package="net.commerce.zocalo.orders">
+    <class name="SortedOrders" table="SORTEDORDERS">
+        <id name="id" column="SORTEDORDERS_ID">
+            <generator class="increment"/>
+        </id>
+
+        <many-to-one name="position" column="POSITIONS_ID" not-null="true" class="net.commerce.zocalo.claim.Position"/>
+
+        <set name="sortedOrders" table="SORTEDORDERS_POS_ORDER" sort="natural">
+            <key column="SORTEDORDERS_ID"/>
+            <many-to-many column="ORDER_ID" unique="true" class="Order"/>
+        </set>
+
+        <component name="samplePrice" unique="false" class="net.commerce.zocalo.currency.Price" >
+            <property column="samplePrice" name="quant"/>
+            <component name="maxValue" unique="false" class="net.commerce.zocalo.currency.Quantity" >
+                <property column="samplePriceMax" name="quant"  />
+            </component>
+        </component>
+    </class>
+</hibernate-mapping>

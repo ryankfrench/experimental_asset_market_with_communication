@@ -1,0 +1,35 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+</head>
+<body>
+
+Classes involved in setting up a web service.
+
+{@link net.commerce.zocalo.service.AllMarkets} is the main entry point for
+a prediction market server.  {@link net.commerce.zocalo.service.MarketOwner}
+helps by managing markets and users.  {@link net.commerce.zocalo.service.CometServer}
+is an abstract superclass for servers that use AJAX.<p>
+
+{@link net.commerce.zocalo.service.ServerUtil} is an abstract superclass that
+reads info from config files.  {@link net.commerce.zocalo.service.PropertyHelper}
+controls specific properties used in configuring Zocalo.
+{@link net.commerce.zocalo.service.Config} sets up configuration and manages access
+to some configured properties.<p>
+
+{@link net.commerce.zocalo.service.ServletUtil}
+is an abstract superclass that sets up JSP and other servlets under Jetty.<p>
+
+{@link net.commerce.zocalo.service.BayeuxSingleton} holds onto AJAX connections
+
+
+<br><table border=1 align=center> <tr><td valign=middle>
+&copy; Copyright 2009 Chris Hibbert.  All rights reserved.<br>
+<p>
+This software is published under the terms of the MIT license, a copy <br>
+of which has been included with this distribution in the LICENSE file.
+</td> </tr></table>
+<br>
+
+</body>
+</html>

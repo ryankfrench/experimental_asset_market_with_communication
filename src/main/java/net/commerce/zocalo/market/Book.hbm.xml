@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<!--Copyright 2009 Chris Hibbert.  All rights reserved.-->
+<!--Copyright 2006 CommerceNet Consortium, LLC.  All rights reserved.-->
+
+<!--This software is published under the terms of the MIT license, a copy-->
+<!--of which has been included with this distribution in the LICENSE file.-->
+
+<hibernate-mapping package="net.commerce.zocalo.market">
+    <class name="Book" table="BOOK">
+        <id name="id" column="BOOK_ID">
+            <generator class="increment"/>
+        </id>
+
+        <discriminator column="BOOK_TYPE" type="string"/>
+
+        <many-to-one name="market" unique="true" not-null="true" class="Market" />
+        <many-to-one name="claim" not-null="true" class="net.commerce.zocalo.claim.BinaryClaim" />
+
+        <map name="offers" table="BOOK_OFFERS">
+            <key column="BOOK_ID" />
+            <map-key-many-to-many column="POSITIONS_ID" class="net.commerce.zocalo.claim.Position" />
+            <many-to-many column="SORTEDORDERS_ID" class="net.commerce.zocalo.orders.SortedOrders" not-found="ignore" />
+        </map>
+        <subclass name="BinaryBook" discriminator-value="Binary" />
+        <subclass name="UnaryBook" discriminator-value="Unary" />
+
+    </class>
+</hibernate-mapping>

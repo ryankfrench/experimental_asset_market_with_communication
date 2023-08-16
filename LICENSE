@@ -1,0 +1,205 @@
+The MIT License (MIT)
+
+Copyright (c) 2014-2015 Joshua Martin
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+---------------------------------
+
+ZOCALO BY CHRIS HIBBERT
+
+This project is primarily a branch of Zocalo, originally developed by Chris Hibbert.
+
+Some features have been added, it was ported to Tomcat (from Jetty), and swapped the client/server mechanism from CometD to WebSockets.
+
+Chris Hibbert's license (also MIT) can be found at:
+
+http://sourceforge.net/p/zocalo/code/HEAD/tree/trunk/LICENSE
+
+His copyright is:
+
+Copyright 2007-2011 Chris Hibbert.   All rights reserved.
+Portions copyright 2005, 2006 CommerceNet Consortium, LLC.
+
+---------------------------------
+
+THIRD PARTY LIBRARIES
+
+The following lists the open source third party libraries used in this software.  Each library is listed with name, description, URL, and license.
+
+activation-1.1.1.jar
+ant-1.6.1.jar
+antlr-2.7.5H3.jar
+antlr-2.7.7.jar
+asm-1.5.3.jar
+asm-attrs-1.5.3.jar
+asm-util-1.3.4.jar
+aspectwerkz-core-0.8.1.jar
+avalon-framework-4.1.3.jar
+cglib-2.1.jar
+cometd-api-0.9.20080221.jar
+cometd-bayeux-6.1.11.jar
+commons-codec-1.3.jar
+commons-collections-3.2.jar
+commons-el-1.0.jar
+commons-fileupload-1.2.jar
+commons-httpclient-3.1.jar
+commons-io-1.3.2.jar
+commons-lang-2.3.jar
+commons-logging-1.1.jar
+commons-logging-api-1.0.3.jar
+dom4j-1.6.jar
+ehcache-1.1.jar
+gson-2.3.jar
+hibernate-3.0.5.jar
+hsqldb-1.8.0.10.jar
+jcommon-1.0.0.jar
+jetty-util-6.1.11.jar
+jfreechart-1.0.0.jar
+jta-1.1.jar
+junit-3.8.1.jar
+log4j-1.2.16.jar
+logkit-1.0.1.jar
+mail-1.4.1.jar
+stringtemplate-3.0.jar
+ws-commons-util-1.0.2.jar
+xml-apis-1.0.b2.jar
+xmlrpc-client-3.1.jar
+xmlrpc-common-3.1.jar
+xmlrpc-server-3.1.jar
+FontAwesome
+JQuery
+
+
+* Dojo, a javascript toolkit, and Cometd, which provices AJAX support
+License: Academic Free License v2.1 OR modified BSD license
+files: web/dojo
+jar files: bayeux-client-6.1.7.jar, cglib-2.1.jar,
+             cometd-api-0.9.20080221.jar, cometd-bayeux-6.1.11.jar
+url: http://cometdproject.dojotoolkit.org/, http://dojotoolkit.org/
+
+*  JUnit, a unit testing framework
+
+jar file: junit.jar
+License:  junit-cpl-v10.html
+url:      http://www.junit.org
+
+
+* JUnit addons, some additional software for use with Junit
+
+jar file: junit.jar
+url:      http://sourceforge.net/projects/junit-addons
+License:  Apache
+
+
+* Jetty, a Java HTTP Server and Servlet Container
+
+License:  jetty-LICENSE.html
+jar file: org.mortbay.jetty.jar
+url:      http://jetty.mortbay.org/jetty
+
+
+*  Hibernate, Object-Relational Mapping
+
+License: LGPL
+jar file: hibernate.jar
+url: http://hibernate.org
+doc: http://www.hibernate.org/hib_docs/reference/en/html/
+
+
+* Hsql
+
+url: http://hsqldb.sourceforge.net
+jar file: hsqldb.jar
+license: BSD
+
+
+* JFreechart
+
+license: lgpl
+url: http://www.jfree.org/jfreechart/
+jar file: jfreechart-1.0.0-rc1.jar
+
+
+* stringtemplate, a tool for building text from templates
+
+License:  BSD
+jar file: stringtemplate.jar
+url:      	http://www.stringtemplate.org
+
+
+* javax.mail, tools for dealing with email
+
+License: Sun CDDL
+jar files: mail.jar, activation.jar
+url:   https://glassfish.dev.java.net/javaee5/mail
+
+
+* Jakarta Commons, open source solutions for Java from Apache
+License:  Apache
+
+  ** commons-httpclient, http client support
+
+  jar file: commons-httpclient-2.0.2.jar
+  url:      http://jakarta.apache.org/commons/httpclient/
+
+  ** commons-lang, java utility classes
+
+  jar file: commons-lang-2.0.jar
+  url:      http://jakarta.apache.org/commons/lang/
+
+  ** commons-el, an interpreter for JSP Expression Language
+
+  jar file: commons-el.jar
+  url:      http://jakarta.apache.org/commons/el/
+
+  ** commons-logging, a wrapper for the standard logging API
+
+  jar file: commons-logging-api.jar
+  url: http://jakarta.apache.org/commons/logging/
+
+  ** TomCat/Jasper, a JSP implementation
+
+  License:   tomcat-LICENSE
+  jar files: jasper-compiler.jar, jasper-runtime.jar,
+                  jsp-api.jar, servlet-api.jar
+  url:       http://jakarta.apache.org/tomcat
+
+  ** Log4J, a framework for logging in java programs
+
+  License:   log4j-LICENSE.txt
+  jar file:  log4j-1.2.14.jar
+  url:       http://logging.apache.org/log4j
+
+  ** Ant, a java-based build tool
+
+  jar file:   ant.jar
+  url:        http://ant.apache.org
+
+  ** ws-commons-util, Web Services Common Utilities
+  jar file: ws-commons-util-1.0.2.jar
+  url: http://ws.apache.org/commons
+  License: http://ws.apache.org/commons/util/license.html
+
+  ** xmlrpc, Apache java implementation of XML-RPC
+  jar files: xmlrpc-client-3.1.jar, xmlrpc-common-3.1.jar, xmlrpc-server-3.1.jar
+  url: http://ws.apache.org/xmlrpc
+  License: http://ws.apache.org/xmlrpc/license.html
+
+---------------------------------

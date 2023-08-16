@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<!--Copyright 2007, 2009 Chris Hibbert  All rights reserved.-->
+
+<!--This software is published under the terms of the MIT license, a copy-->
+<!--of which has been included with this distribution in the LICENSE file.-->
+
+<hibernate-mapping package="net.commerce.zocalo.ajax.events">
+    <class name="BestAsk" table="BEST_ASKS">
+        <id name="id" column="BEST_ASKS_ID">
+            <generator class="increment"/>
+        </id>
+        <property name="owner"/>
+        <component name="price" unique="false" class="net.commerce.zocalo.currency.Price" >
+            <property column="price" name="quant"/>
+            <component name="maxValue" unique="false" class="net.commerce.zocalo.currency.Quantity" >
+                <property column="priceMax" name="quant"  />
+            </component>
+        </component>            
+        <component name="quantity" class="net.commerce.zocalo.currency.Quantity" unique="false">
+            <property name="quant"/>
+        </component>
+        <property name="time"/>
+        <many-to-one name="pos" not-null="true" class="net.commerce.zocalo.claim.Position" />
+    </class>
+</hibernate-mapping>

@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<!--Copyright 2008 Chris Hibbert.  All rights reserved.-->
+
+<!--This software is published under the terms of the MIT license, a copy-->
+<!--of which has been included with this distribution in the LICENSE file.-->
+
+<hibernate-mapping package="net.commerce.zocalo.market">
+    <class name="Outcome" table="OUTCOME">
+        <id name="id" column="OUTCOME_ID">
+            <generator class="increment"/>
+        </id>
+
+        <discriminator column="OUTCOME_TYPE" type="string"/>
+
+        <subclass name="net.commerce.zocalo.market.Outcome$OpenOutcome" discriminator-value="Open">
+            <property name="continuous" />
+        </subclass>
+
+        <subclass name="net.commerce.zocalo.market.Outcome$SingleOutcome" discriminator-value="Single">
+            <many-to-one name="position" cascade="all" class="net.commerce.zocalo.claim.Position" column="POSITIONS_ID" />
+        </subclass>
+
+    </class>
+</hibernate-mapping>

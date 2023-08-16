@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<!--Copyright 2006 CommerceNet Consortium, LLC.  All rights reserved.-->
+
+<!--This software is published under the terms of the MIT license, a copy-->
+<!--of which has been included with this distribution in the LICENSE file.-->
+
+<hibernate-mapping package="net.commerce.zocalo.currency">
+    <class name="Accounts" table="ACCOUNTS">
+        <id name="id" column="ACCOUNTS_ID">
+            <generator class="increment"/>
+        </id>
+        <many-to-one name="cash" cascade="all" not-null="true" class="Funds" />
+
+        <map name="positions" table="ACCOUNT_HOLDINGS">
+            <key column="ACCOUNTS_ID" />
+            <map-key-many-to-many column="POSITIONS_ID" class="net.commerce.zocalo.claim.Position" />
+            <many-to-many column="COUPONS_ID" class="Coupons" not-found="ignore" />
+        </map>
+
+    </class>
+</hibernate-mapping>

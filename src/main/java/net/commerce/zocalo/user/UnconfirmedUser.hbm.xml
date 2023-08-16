@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<!--Copyright 2007, Chris Hibbert.  All rights reserved.-->
+
+<!--This software is published under the terms of the MIT license, a copy-->
+<!--of which has been included with this distribution in the LICENSE file.-->
+
+<hibernate-mapping package="net.commerce.zocalo.user">
+    <class name="UnconfirmedUser" table="UNCONFIRMED_USERS">
+        <id name="id" column="USER_ID">
+            <generator class="increment"/>
+        </id>
+        <property name="name"/>
+        <property name="emailAddress"/>
+        <property name="password"/>
+        <property name="confirmationToken"/>
+
+    </class>
+</hibernate-mapping>

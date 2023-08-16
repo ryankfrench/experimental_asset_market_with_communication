@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee
+                      http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
+	version="3.1" metadata-complete="true">
+
+	<display-name>Zocalo - Tomcat</display-name>
+	<description>
+		Zocalo experiment server - enabled on Tomcat.
+	</description>
+	<servlet>
+		<servlet-name>cometd</servlet-name>
+		<servlet-class>jjdm.zocalo.ZocaloSetupServlet</servlet-class>
+		<init-param>
+			<param-name>timeout</param-name>
+			<param-value>30000</param-value>
+		</init-param>
+		<init-param>
+			<param-name>interval</param-name>
+			<param-value>0</param-value>
+		</init-param>
+		<init-param>
+			<param-name>maxInterval</param-name>
+			<param-value>30000</param-value>
+		</init-param>
+		<init-param>
+			<param-name>multiFrameInterval</param-name>
+			<param-value>1500</param-value>
+		</init-param>
+		<init-param>
+			<param-name>JSONCommented</param-name>
+			<param-value>true</param-value>
+		</init-param>
+		<init-param>
+			<param-name>logLevel</param-name>
+			<param-value>1</param-value>
+		</init-param>
+		<load-on-startup>0</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>cometd</servlet-name>
+		<url-pattern>/cometd/*</url-pattern>
+	</servlet-mapping>
+
+</web-app>

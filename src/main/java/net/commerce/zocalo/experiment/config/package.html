@@ -1,0 +1,76 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+</head>
+<body>
+
+The classes in this package provide an interactive editor for configuring experiments.  
+{@link net.commerce.zocalo.experiment.config.ConfigManager} contains the main() entry point,
+while {@link net.commerce.zocalo.experiment.config.ConfigEditor} connects to the servlet
+hierarchy to manage interactions between the browser and web server.  {@link
+net.commerce.zocalo.experiment.config.ExperimentConfig} holds the root of a branching tree of
+objects that represent the nested hierarchy of cascading choices that are used to configure an
+experiment.<p>
+
+The architecture of the hierarchical representation provides a collection of named fields with
+values that can be nested so that some choices control the circumstances in which other choices
+are available.  The expectation is that those choices are never cyclical, so a singly-rooted
+tree can represent them.  Individual objects in the hierarchy either represent a single field
+with a name and a value or a collection of fields that either have a semantic relationship to
+one another (all related to a role, all enabled by a choice made at the next level up, or
+grouped together as a list at a particular location in the hierarchy. In the case of a single
+field, the object is responsible for accessing and modifying the field's value.<p>
+
+The leaves of the tree represent actual values that might be
+{@link net.commerce.zocalo.experiment.config.BooleanField booleans},
+{@link net.commerce.zocalo.experiment.config.StringField strings},
+{@link net.commerce.zocalo.experiment.config.IntField numbers} or the like.  These are all 
+specializations of {@link net.commerce.zocalo.experiment.config.ConfigField}, which is the
+parent to the single field subclasses of ValueHolder.
+<b>{@link net.commerce.zocalo.experiment.config.ValueHolder} is an interface that specifies
+that its descendents hold values and have a title.</b> Other subclasses hold values that are
+Strings, but have a more restricted syntax.  These include
+{@link net.commerce.zocalo.experiment.config.TimeField},
+{@link net.commerce.zocalo.experiment.config.IntListField} which holds lists of numbers,
+{@link net.commerce.zocalo.experiment.config.StringListField}, and
+{@link net.commerce.zocalo.experiment.config.DoubleField} which holds doubles so they can be
+parsed in java rather than in javascript.<p>
+
+The other branch below ValueHolder is {@link net.commerce.zocalo.experiment.config.ValueGroup},
+which is <b>the parent for classes representing collections of fields grouped together</b> for
+different reasons.  {@link net.commerce.zocalo.experiment.config.ChoiceField} provides a
+<b>radio button</b> style choice, with separate groups of fields that are only valid according
+to the currently selected alternative.
+{@link net.commerce.zocalo.experiment.config.FieldGroup} is a container for multiple fields (or
+more FieldGroups) without representing any particular semantic relationship among them.
+{@link net.commerce.zocalo.experiment.config.RoleGroup} represents a set of roles required for
+a particular style of experiment.
+
+Different experiments may require subjects that have unique configuration requirements.  Each
+of these is a role and fields assigned in a RoleGroup will be duplicated for each role and be
+able to take a different value in each role.  An example would be messages that get displayed
+to different subjects during an experiment.  If every user should see a unique message at some
+point in the exeriment, then each user will need a separate role.  But if there are groups of
+users getting common messages, then those messages can be defined in one common role and
+multiple user names can be assigned to the role.<p> 
+
+{@link net.commerce.zocalo.experiment.config.ConfigHolder} is the base of the hierarchy and
+specifies that everything can be rendered to HTML and that they all contain values that can be
+set by an HTTPRequest.<p> 
+
+{@link net.commerce.zocalo.experiment.config.RoleValueHolder} is the base type for classes that
+contain fields specific to particular roles in an experiment.  The methods here are parallel to
+those in {@link net.commerce.zocalo.experiment.config.ValueHolder}, but with an extra parameter
+to specify the role.  Group-related objects below RoleValueHolder know how to pass requests
+down the containment tree, while Field objects access the value in their own field directly.<p> 
+
+<br><table border=1 align=center> <tr><td valign=middle>
+&copy; Copyright 2009 Chris Hibbert.  All rights reserved.<br>
+<p>
+This software is published under the terms of the MIT license, a copy <br>
+of which has been included with this distribution in the LICENSE file.
+</td> </tr></table>
+<br>
+
+</body>
+</html>

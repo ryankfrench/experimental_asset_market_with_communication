@@ -1,0 +1,34 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+</head>
+<body>
+
+This package contains the classes that configure Zocalo to support experiments.
+The experimental subjects are represented by the interface
+{@link net.commerce.zocalo.experiment.ExperimentSubject},
+the abstract class {@link net.commerce.zocalo.experiment.role.AbstractSubject},
+{@link net.commerce.zocalo.experiment.role.Judge} (which represents judges, who do not trade),
+and {@link net.commerce.zocalo.experiment.role.TradingSubject}, the base class for
+{@link net.commerce.zocalo.experiment.role.Manipulator} and
+{@link net.commerce.zocalo.experiment.role.Trader}.<p>
+
+{@link net.commerce.zocalo.experiment.Session} supports experimental sessions
+configured by reading a property file.   {@link net.commerce.zocalo.service.PropertyHelper}
+has support for reading property files, and
+{@link net.commerce.zocalo.service.PropertyKeywords} defines tokens found in those files.
+{@link net.commerce.zocalo.experiment.SessionSingleton} applies the
+<a href="http://c2.com/cgi/wiki?SingletonPattern">Singleton pattern</a> to Sessions,
+ensuring there is only one session object at a time.<p>
+
+<br><table border=1 align=center> <tr><td valign=middle>
+&copy; Copyright 2007, 2008 Chris Hibbert.  All rights reserved.<br>
+&copy; 2006 CommerceNet Consortium, LLC.
+<p>
+This software is published under the terms of the MIT license, a copy <br>
+of which has been included with this distribution in the LICENSE file.
+</td> </tr></table>
+<br>
+
+</body>
+</html>

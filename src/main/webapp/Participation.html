@@ -1,0 +1,257 @@
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Zocalo Participation</title>
+	<script type="text/javascript">var logger = console;</script>
+    <script type="text/javascript" src="jquery-2.1.3.min.js"></script>
+    <script type="text/javascript" src="WebSocketClient.js"></script>
+	<style>
+		div { display: none; }
+		#container {
+			display: block;
+			border: 1px solid #cccccc;
+			padding: 20px;
+			margin: 20 auto;
+			background-color: #eeeeee;
+			width: 1024px;
+			font-size: 1.2em;
+		}
+		#browser {
+			margin: 20 auto;
+			width: 1200px;
+		}
+	</style>
+</head>
+<body>
+
+	<span id="container">
+
+		<div id="participationParticipate">
+			PARTICIPATION PAGE
+		</div>
+
+		<div id="participationClue">
+			CLUE PAGE
+		</div>
+
+		<div id="participationFinished">
+			COMPLETED PAGE
+		</div>
+
+	</span>
+
+	<div id="browser" style="font-size: 5em; text-align: center; margin-top: 2em; color: #cccccc;">
+		Launching browser...
+	</div>
+
+	<script>
+
+		function callService(args) {
+			var toReturn = null;
+			args["u"] = getUsername();
+			logger.debug(args);
+			$.ajax("service.jsp", {
+				accepts: "json",
+				async: false,
+				cache: false,
+				data: args,
+				success: function(data) { toReturn = data; },
+				error: function(error) { logger.error(error); }
+			});
+			logger.debug(toReturn);
+			return toReturn;
+		}
+
+		function getChatState() { return callService({ a: "chatState" }); }
+
+		function isParticipationOn() {
+			return g_chatState.roundParticipationCost !== undefined;
+		}
+
+		function isClueOn() {
+			// if there is no cost (different than 0 cost), this means skip clue selection
+			var showClueSelection = g_chatState.roundClueCost !== undefined;
+			// if there is a cost, and multi-clue, check to make sure they can select at least one additional clue
+			if(showClueSelection && g_chatState.clueDistributionMultiClue) {
+				showClueSelection = g_chatState.multiClueMaximumCount > g_chatState.multiClueInitialCount;
+			}
+			return showClueSelection;
+		}
+
+		function lookupAndDisplayContent(template, divToShow) {
+			$("div").hide();
+			var content = callService({ a: "generateParticipationPage", p: template });
+			$(divToShow).html(content);
+			$(divToShow).show();
+		}
+
+		function showPages() {
+
+			if(g_currentChoice) {
+				submitParticipation();
+				return;
+			}
+
+			if(isParticipationOn()) {
+				lookupAndDisplayContent("participationParticipatePage", "#participationParticipate");
+			} else {
+				participate(); // not configured - everyone participates
+			}
+
+		}
+
+		function participate() {
+
+			if(g_currentChoice) { // are choices already made?
+				submitParticipation();
+				return;
+			} else if (!isParticipationOn()) { // does everyone participate?
+				g_participate = true;
+			} else { // look at the radio button
+				var selected = $("input[name='radioParticipate']:checked");
+				if (selected.length > 0) {
+					g_participate = "true" == selected.val();
+				} else {
+					return; // no selection made - maybe add error here
+				}
+			}
+
+			if(isClueOn()) {
+				if(g_participate) {
+					if(g_chatState.clueDistributionMultiClue) {
+                        lookupAndDisplayContent("participationClueSelectPage", "#participationClue");
+					} else {
+					    lookupAndDisplayContent("participationCluePage", "#participationClue");
+					}
+				} else {
+					g_clue = false; // not participating, cannot receive clue
+					g_additionalClues = 0;
+					submitParticipation(); // not configured - everyone receives clue
+				}
+			} else {
+				g_clue = true;
+				g_additionalClues = 0;
+				submitParticipation(); // not configured - everyone receives clue
+			}
+
+		}
+
+		function receiveClue() {
+			if(g_currentChoice) {
+				submitParticipation();
+				return;
+			} else if(!isClueOn()) {
+				g_clue = true;
+			} else {
+				var selected = $("input[name='radioClue']:checked");
+				if (selected.length > 0) {
+					g_clue = "true" == selected.val();
+				} else {
+					return; // no selection made - maybe add error here
+				}
+			}
+			submitParticipation();
+		}
+
+		function receiveSelectClue() {
+			if(g_currentChoice) {
+				submitParticipation();
+				return;
+			} else if(!isClueOn()) {
+				g_additionalClues = 0;
+			} else {
+				var selected = $("#multiClueSelect").val();
+				if (selected >= 0) {
+					g_additionalClues = selected;
+				} else {
+					return; // no selection made - maybe add error here
+				}
+			}
+			submitParticipation();
+		}
+
+		function submitParticipation() {
+			if(!g_currentChoice) {
+				if(g_chatState.clueDistributionMultiClue) {
+					g_currentChoice = callService({ a: "addParticipationMultiClueChoice", p: g_participate, c: g_additionalClues });
+				} else {
+					g_currentChoice = callService({ a: "addParticipationChoice", p: g_participate, c: g_clue });
+				}
+			}
+			lookupAndDisplayContent("participationFinishedPage", "#participationFinished");
+		}
+
+		function findCurrentChoice() {
+			var currentChoice = callService({ a: "participationChoiceForUser" });
+			return currentChoice;
+		}
+
+		function redirectToTrading() {
+			document.location = "Trader.jsp?userName=" + getUsername();
+		}
+
+		function showBrowser() {
+			$("div").hide();
+			$("#container").hide();
+			$("#browser").show();
+		}
+
+		function handleStateChange() {
+			logger.debug(g_chatState);
+			if(g_currentChoice) {
+				g_participate = g_currentChoice.participate;
+				if(g_chatState.clueDistributionMultiClue) {
+					g_additionalClues = g_currentChoice.additionalClues;
+				} else {
+					g_clue = g_currentChoice.receiveClue;
+				}
+			}
+			if(g_chatState.participationRunning) {
+				showPages();
+			} else if(g_chatState.roundRunning) {
+				if(!g_currentChoice) {
+					// error condition here - participant is here, but never made a choice
+					showBrowser();
+				} else if(g_currentChoice.participate) {
+					redirectToTrading();
+				} else {
+					showBrowser();
+				}
+			} else {
+				redirectToTrading();
+			}
+		}
+
+        $(document).ready(function() {
+
+            var websocketClient = createWebSocket(function(message) {
+                var data = JSON.parse(message.data);
+				logger.debug(data);
+                if(data.topic == "/global") {
+					if(data.id == "PARTICIPATION_STATE_CHANGE") {
+						logger.debug("PARTICIPATION_STATE_CHANGE");
+						g_chatState = data;
+						g_currentChoice = findCurrentChoice();
+						handleStateChange();
+					}
+				}
+            });
+
+			g_chatState = getChatState();
+			if(g_chatState) {
+				g_currentChoice = findCurrentChoice();
+				handleStateChange();
+			}
+
+        });
+
+		var g_chatState;
+		var g_currentChoice;
+		var g_participate = true;
+		var g_clue = true;
+		var g_additionalClues = 0;
+
+	</script>
+
+</body>
+</html>

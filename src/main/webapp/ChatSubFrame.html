@@ -1,0 +1,630 @@
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Zocalo Chat</title>
+		<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+		<script type="text/javascript" src="jquery-2.1.3.min.js"></script>
+		<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.js"></script>
+		<script type="text/javascript" src="WebSocketClient.js"></script>
+		<style>
+			body { width: 800px }
+			#leftSide { float: left; width: 470px; }
+			#rightSide {
+				float: right;
+				width: 325px;
+				height: 650px;
+				overflow-y: scroll;
+			}
+			table {
+				border: 0;
+				padding: 0;
+				width: 100%;
+				table-layout: fixed;
+				margin: 0;
+			}
+			table td, table th {
+				padding: 2px;
+				margin: 0;
+				text-align: center;
+			}
+			th { font-size: 1.0em; }
+			a.muted { color: red }
+			a.showing { color: green }
+			.hide { display: none; }
+			.show { display: block; }
+			div.chat {
+				margin: 5px;
+				padding: 4px 8px;
+				border: 1px solid black;
+				white-space: pre-wrap;      /* CSS3 */
+				white-space: -moz-pre-wrap; /* Firefox */
+				word-wrap: break-word;      /* IE */
+			}
+			#messageHistory { margin-top: 15px }
+			#chart-legend { font-size: 0.8em }
+			div.chat p {
+				padding: 0;
+				margin: 0;
+			}
+			p.chatFrom { color: #444444; }
+			p.chatTime { font-size: 0.8em; color: #444444; }
+			#errors {
+				text-align: center;
+				background-color: red;
+				color: white;
+			}
+		</style>
+	</head>
+	<body>
+
+		<script type="text/javascript">var logger = console;</script>
+
+		<h3 align="center">Messaging</h3>
+		<p id="timing" align="center">Chat is not currently available.</p>
+		<div id="errors" class="hide">Please include a message and select at least one recipient before sending.</div>
+		<div id="leftSide" class="hide">
+			<h4 align="center">Participants</h4>
+			<table id="participantsTable">&nbsp;</table>
+			<p id="toggleCheckboxes" style="text-align: center">&nbsp;</p>
+			<div id="messageDiv" style="text-align: left">&nbsp;</div>
+		</div>
+		<div id="rightSide">
+			<h4 align="center">
+				Chat History
+				<br/>
+				<span style="font-size: 0.9em; font-weight: normal;">(Most recent messages appear at the top.)</span>
+			</h4>
+			<div id="colorChartHolder" style="height: 100px; width: 300px;" class="hide">
+				<canvas id="chatColorChart" width="100" height="100" style="float: left;"></canvas>
+				<div id="chatColorChartLegend" style="float: right; margin-top: 10px; width: 180px"></div>
+				<div style="float: clear;"></div>
+			</div>
+			<div id="messageHistory">&nbsp;</div>
+		</div>
+		<div id="bottom" style="clear: both;">&nbsp;</div>
+
+		<script type="text/javascript">
+
+			function escapeHtml(original) {
+				if (original) {
+					return original.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+				} else {
+					return "";
+				}
+			}
+
+			function toggleUsers(checked) {
+				$("input[type=checkbox]").each(function (index) {
+					this.checked = checked;
+				});
+			}
+
+			function findIdByDisplay(id) {
+				var displayId = Object.keys(g_allUsers).filter(function (key) {
+					return g_allUsers[key] === id
+				})[0];
+				return displayId;
+			}
+
+			function callService(args) {
+				var toReturn = null;
+				args["u"] = getUsername();
+				logger.debug(args);
+				$.ajax("service.jsp", {
+					accepts: "json",
+					async: false,
+					cache: false,
+					data: args,
+					success: function (data) {
+						toReturn = data;
+					},
+					error: function (error) {
+						logger.error(error);
+					}
+				});
+				logger.debug(toReturn);
+				return toReturn;
+			}
+
+			function completeRefresh() {
+				return callService({a: "completeRefresh"});
+			}
+			function getAllUsers() {
+				return callService({a: "allUsers"});
+			}
+			function getMessages() {
+				return callService({a: "getMessages"});
+			}
+			function getAllMutedUsers() {
+				return callService({a: "allMutedUsers"});
+			}
+			function getChatState() {
+				return callService({a: "chatState"});
+			}
+			function getChoices() {
+				return callService({a: "choices"});
+			}
+			function getMaxMessageSize() {
+				return callService({a: "maxMessageSize"});
+			}
+
+			function changeMute(id, action) {
+				g_mutedUsers = callService({a: action, d: id});
+				var isMuted = action == "mute";
+				var html = drawMutingLink(id, isMuted);
+				var column = $("#mute_" + id);
+				logger.debug(column);
+				column.html(html);
+				drawMessages();
+
+			}
+
+			function submitMessage() {
+				var textAreaValue = $("textarea[name=messageField]").val();
+				var radioValue = $("input[name=messageField]:checked").val();
+				var messageValue = textAreaValue ? textAreaValue : radioValue;
+				var recipients = [];
+				$("input[type=checkbox]").each(function (index) {
+					if (this.checked) {
+						recipients[recipients.length] = $(this).attr("name");
+					}
+				});
+				if (recipients.length == 0 || !messageValue || messageValue.trim().length == 0) {
+					show("#errors");
+					return;
+				} else {
+					hide("#errors");
+				}
+				$("input[name=messageField]:checked").prop('checked', false);
+				$("textarea[name=messageField]").val("");
+				var rString = JSON.stringify(recipients).replace(/[\[\]"]/g, "");
+				return callService({a: "addMessage", m: messageValue, r: rString});
+			}
+
+			function show(element) {
+				$(element).addClass("show");
+				$(element).removeClass("hide");
+			}
+
+			function hide(element) {
+				$(element).addClass("hide");
+				$(element).removeClass("show");
+			}
+
+			function drawAll() {
+
+				logger.debug("drawAll");
+
+				g_chatState = getChatState();
+				var chatMessage = "Chat is not currently available.";
+
+				if (!g_chatState.experimentStarted || !g_chatState.chatEnabled) {
+					hide("#leftSide");
+					hide("#rightSide");
+					hide("#bottom");
+					drawTiming();
+					return;
+				}
+
+				var result = completeRefresh();
+				g_allUsers = result.allUsers;
+				g_mutedUsers = result.mutedUsers;
+				g_messages = result.messages;
+				g_choices = result.choices;
+				g_maxMessageSize = result.maxMessageSize;
+				g_reputationScores = result.reputationScores;
+				g_colorsForChoice = result.colorsForChoice;
+				g_colorChartEnabled = result.colorChartEnabled;
+
+				drawUserTable();
+				drawMessages();
+				drawTiming();
+				drawToggles();
+				drawMessageBox();
+				drawColorChart();
+
+				show("#leftSide");
+				show("#rightSide");
+				show("#bottom");
+				hide("#errors");
+
+			}
+
+			function drawTiming() {
+
+				if (!g_chatState.chatActive || g_chatState.chatSecondsRemaining <= 0) {
+					$("#timing").html("Chat is not currently available.");
+					return;
+				}
+
+				var timeLeft = secondsToMmSsDisplay(g_chatState.chatSecondsRemaining);
+				var html = "Time Remaining to Chat:  " + timeLeft;
+				$("#timing").html(html);
+
+				g_chatState.chatSecondsRemaining = g_chatState.chatSecondsRemaining - 1;
+
+			}
+
+			function drawMessages() {
+
+				logger.debug("drawMessages");
+
+				var mostRecentLast = g_messages.sort(function (m1, m2) {
+					return new Date(m1.timestamp) - new Date(m2.timestamp);
+				});
+
+				$("#messageHistory").html("");
+
+				for (m in mostRecentLast) {
+					drawMessage(mostRecentLast[m]);
+				}
+
+				// required here in case no messages are drawn (final catch)
+				drawColorChart();
+
+			}
+
+			function drawMessage(message) {
+
+				var userId = getUsername();
+
+				var fromMe = message.senderId == userId;
+				var toMe = message.recipientIds.indexOf(userId) != -1;
+				var blocked = g_mutedUsers.indexOf(message.senderId) != -1;
+				if (!fromMe && (!toMe || blocked)) {
+					return; // show all messages from me, plus any to me and not blocked
+				}
+
+				var from = fromMe ? "You" : findIdByDisplay(message.senderId);
+				var receiveString = fromMe ? "Sent at: " : "Received at: ";
+
+				var to = [];
+				for (i = 0; i < message.recipientIds.length; i++) {
+					var rId = message.recipientIds[i];
+					to[i] = findIdByDisplay(rId);
+				}
+
+				var toString = to.length + " Participants";
+				if (to.length == 1 && message.recipientIds[0] == userId) {
+					toString = "Only You";
+				} else if (to.length + 1 == Object.keys(g_allUsers).length) {
+					toString = "Everyone";
+				} else if (to.length <= 12) {
+					toString = to.sort();
+				}
+
+				var messagebackgroundColor = lookupBackgroundForMessage(message.message);
+
+				var b = '<div class="chat" style="background-color: ' + messagebackgroundColor + '">';
+				if (fromMe) {
+					b += '<p class="chatFrom fromMe">';
+				} else {
+					b += '<p class="chatFrom fromOther">';
+				}
+				b += '<b>From: </b>' + from + ' &nbsp; <b> To: </b>' + toString + '</p>';
+				b += '<p class="chatTime">' + receiveString + new Date(message.timestamp + " UTC").toLocaleTimeString() + '</p>';
+				b += '<p class="chatMsg">' + escapeHtml(message.message) + '</p>';
+				b += '</div>';
+
+				// put it in the front (top) of the message history
+				$("#messageHistory").prepend(b);
+
+				// required here because individual messages are not added through drawMessages()
+				drawColorChart();
+
+			}
+
+			function lookupBackgroundForMessage(messageText) {
+				var bgColor = "transparent";
+				if (messageText && g_colorsForChoice) {
+					var tempColor = g_colorsForChoice[messageText];
+					if (tempColor) {
+						bgColor = tempColor;
+					}
+				}
+				return bgColor;
+			}
+
+			function drawColorChart() {
+
+				// only draw if enabled
+				if (!g_colorChartEnabled) {
+					hide("#colorChartHolder");
+					return;
+				}
+
+				show("#colorChartHolder");
+
+				// initialize if nothing there
+				if (!g_colorChartObject) {
+					var ctx = $("#chatColorChart").get(0).getContext("2d");
+					// TODO JJDM Had to remove display: none on parent iframe - test without chat
+					g_colorChartObject = new Chart(ctx).Pie([], {
+						segmentShowStroke: true,
+						segmentStrokeColor: "#fff",
+						segmentStrokeWidth: 2,
+						percentageInnerCutout: 0, // This is 0 for Pie charts
+						animation: false,
+						legendTemplate: "<table id=\"chart-legend\" style=\"width: 175px\"><% for (var i=0; i<segments.length; i++){%><tr><td style=\"background-color:<%=segments[i].fillColor%>; width: 20px; text-align: center;\"><%=segments[i].value%></td><td><%if(segments[i].label){%><%=segments[i].label%><%}%></td></tr><%}%></table>",
+						tooltipTemplate: "<%= value %>"
+					});
+					logger.debug("Color Chart Initialized.");
+				}
+
+				var messageCountsForGraph = {};
+				$.each(g_colorsForChoice, function (clue, color) {
+					messageCountsForGraph[clue] = 0;
+				});
+
+				var atLeastOneChat = false;
+
+				// loop over visible chat messages - assemble data
+				$("#messageHistory .chat .fromOther").parent().children(".chatMsg").each(function (index, paragraph) {
+					logger.debug($(paragraph));
+					atLeastOneChat = true;
+					var clue = $(paragraph).text().trim();
+					messageCountsForGraph[clue]++;
+				});
+
+				// draw the chart
+				logger.debug(g_colorChartObject);
+
+				var piePieces = g_colorChartObject.segments.length;
+				while (piePieces > 0) {
+					g_colorChartObject.removeData();
+					piePieces = g_colorChartObject.segments.length;
+				}
+				piePieces = 0;
+
+				for (var clueIndex in g_choices) {
+					var clue = g_choices[clueIndex];
+					if (g_colorsForChoice[clue] && messageCountsForGraph[clue] > 0) {
+						g_colorChartObject.addData({
+							value: messageCountsForGraph[clue],
+							color: g_colorsForChoice[clue],
+							label: clue
+						}, piePieces++, true);
+					}
+				}
+				g_colorChartObject.update(); // JJDM - need to clear the chart of start of new round
+				$('#chatColorChartLegend').html(g_colorChartObject.generateLegend());
+
+				logger.debug(g_colorChartObject);
+
+			}
+
+			function drawMessageBox() {
+				var b = "";
+				if (!g_chatState.chatActive) {
+					b += "&nbsp;";
+				} else if (g_choices.length > 0) {
+					for (c in g_choices) {
+						var choice = g_choices[c];
+						b += '<input type="radio" name="messageField" value="' + choice + '" />';
+						b += choice;
+						b += '<br/>';
+					}
+					b += '<input type="button" value="Submit Message" onClick="submitMessage()" style="margin-top: 10px"/>';
+				} else {
+					b += '<textarea name="messageField" cols="40" rows="4" style="resize: none" maxlength="' + g_maxMessageSize + '"></textarea>';
+					b += '<br/>';
+					b += '<input type="button" value="Submit Message" onClick="submitMessage()" style="margin-top: 10px"/>';
+				}
+				$("#messageDiv").html(b);
+			}
+
+			function drawToggles() {
+				var b = "&nbsp;";
+				if (g_chatState.chatActive) {
+					b = '<a href="javascript:toggleUsers(true)">Select All "Send To"</a>';
+					b += '&nbsp; &nbsp; &nbsp;';
+					b += '<a href="javascript:toggleUsers(false)">Clear All "Send To"</a>';
+				}
+				$("#toggleCheckboxes").html(b);
+			}
+
+			function drawUserTable() {
+
+				var userId = getUsername();
+
+				logger.debug("drawUserTable");
+
+				var displayIds = Object.keys(g_allUsers).sort();
+				var rowsRequired = Math.ceil(displayIds.length / 2);
+
+				logger.debug(displayIds);
+				logger.debug("rowsRequired: " + rowsRequired);
+
+
+				var b = "";
+				if (g_chatState.chatBlockEnabled) {
+					b += "<colgroup>";
+					b += "<col style='width: 16%'/>";
+					b += "<col style='width: 16%'/>";
+					b += "<col style='width: 16%'/>";
+					b += "<col style='width: 4%'/>";
+					b += "<col style='width: 16%'/>";
+					b += "<col style='width: 16%'/>";
+					b += "<col style='width: 16%'/>";
+					b += "</colgroup>";
+					b += "<tr>";
+					b += "<th>Send To</th>";
+					b += "<th>Receive From</th>";
+					b += "<th>ID</th>";
+					b += "<th>&nbsp;</th>";
+					b += "<th>Send To</th>";
+					b += "<th>Receive From</th>";
+					b += "<th>ID</th>";
+					b += "</tr>";
+				} else {
+					b += "<colgroup>";
+					b += "<col style='width: 24%'/>";
+					b += "<col style='width: 24%'/>";
+					b += "<col style='width: 4%'/>";
+					b += "<col style='width: 24%'/>";
+					b += "<col style='width: 24%'/>";
+					b += "</colgroup>";
+					b += "<tr>";
+					b += "<th>Send To</th>";
+					b += "<th>ID</th>";
+					b += "<th>&nbsp;</th>";
+					b += "<th>Send To</th>";
+					b += "<th>ID</th>";
+					b += "</tr>";
+				}
+
+				for (row = 0; row < rowsRequired; row++) {
+
+					b += "<tr>";
+
+					var c1Display = displayIds[row];
+					var c1Id = g_allUsers[c1Display];
+					var c1Score = $(g_reputationScores).filter(function (index) {
+						return this.id == c1Id;
+					}).prop("score");
+					b += drawUserColumns(userId, c1Id, c1Display, c1Score);
+					b += "<td>&nbsp;</td>";
+
+					var columnTwoIndex = row + rowsRequired;
+					var drawSecondColumn = columnTwoIndex < displayIds.length;
+
+					if (drawSecondColumn) {
+						var c2Display = displayIds[columnTwoIndex];
+						var c2Id = g_allUsers[c2Display];
+						var c2Score = $(g_reputationScores).filter(function (index) {
+							return this.id == c2Id;
+						}).prop("score");
+						b += drawUserColumns(userId, c2Id, c2Display, c2Score);
+					} else {
+						b += '<td colspan="3">&nbsp;</td>';
+					}
+
+					b += "</tr>";
+				}
+
+
+
+				$("#participantsTable").html(b);
+
+			}
+
+			function drawUserColumns(userId, cId, cDisplay, score) {
+
+				var numCols = g_chatState.chatBlockEnabled ? 2 : 1;
+			
+				if (userId == cId) {
+					var myIdDisplay = cDisplay;
+					if(g_chatState.chatActive) {
+						myIdDisplay += ' ' + drawReputationScore(cId, score);
+					}
+					return '<td colspan="' + numCols + '"><i>This is You</i> &#8594;</td><td>' + myIdDisplay + '</td>';
+				}
+
+				if (!g_chatState.chatActive) {
+					return '<td colspan="' + numCols + '">&nbsp;</td><td>' + cDisplay + '</td>';
+				}
+
+				var isMuted = g_mutedUsers.indexOf(cId) != -1;
+				var r = '<td><input type="checkbox" name="' + cId + '" checked="true"/></td>';
+				if (g_chatState.chatBlockEnabled) {
+					r += '<td id="mute_' + cId + '">';
+					r += drawMutingLink(cId, isMuted);
+					r += '</td><td class="repScore">';
+					r += cDisplay + " ";
+					r += drawReputationScore(cId, score);
+					r += '</td>';
+				} else {
+					r += '<td class="repScore">';
+					r += cDisplay;
+					r += '</td>';
+				}
+
+				return r;
+
+			}
+
+			function drawMutingLink(cId, isMuted) {
+
+				var icon = "fa fa-circle";
+				var iconClass = "showing";
+				var help = "Click to hide messages from this participant.";
+				var link = "javascript:changeMute('" + cId + "', 'mute');";
+
+				if (isMuted) {
+					icon = "fa fa-close";
+					iconClass = "muted";
+					help = "Click to show messages from this participant.";
+					link = "javascript:changeMute('" + cId + "', 'unmute');";
+				}
+
+				var r = '<a class="' + iconClass + '" title="' + help + '" href="#" onClick="' + link + '">';
+				r += '<i class="' + icon + '"></i>';
+				r += '</a>';
+
+				return r;
+
+			}
+
+			function drawReputationScore(cId, reputationScore) {
+				if (!g_chatState.chatBlockShowReputation || reputationScore == null) {
+					return '<span id="reputationScore_' + cId + '"></span>';
+				} else {
+					return '<span id="reputationScore_' + cId + '"> (' + reputationScore + '%)</span>';
+				}
+
+			}
+
+			$(document).ready(function () {
+
+				var websocketClient = createWebSocket(function (message) {
+					var data = JSON.parse(message.data);
+					if (data.topic == "/chat") {
+						logger.debug("Message Received on /chat");
+						logger.debug(message);
+						logger.debug(data);
+						if (data.id == "NEW_CHAT_MESSAGE") {
+							g_messages[g_messages.length] = data;
+							drawMessage(data);
+						} else if (data.id == "REPUTATION_SCORES") {
+							g_reputationScores = data.reputationScores;
+							$(g_reputationScores).each(function (index) {
+								$("#reputationScore_" + this.id).html(drawReputationScore(this.id, this.score));
+							});
+						}
+					} else if (data.topic == "/global") {
+						if (data.id == "TIME_SYNC") {
+							g_chatState.chatSecondsRemaining = data.chatTimeRemaining;
+							window.clearInterval(g_timer);
+							drawTiming(); // do not skip a second
+							g_timer = window.setInterval(function () {
+								drawTiming()
+							}, 1000);
+						}
+					}
+				});
+
+				drawAll();
+				g_timer = window.setInterval(function () {
+					drawTiming()
+				}, 1000);
+
+			});
+
+			// Global variables used by all functions - attempting to initialize once.
+
+			var g_allUsers;
+			var g_mutedUsers;
+			var g_chatState;
+			var g_messages;
+			var g_choices;
+			var g_maxMessageSize;
+			var g_reputationScores;
+			var g_colorsForChoice;
+			var g_colorChartEnabled;
+			var g_colorChartObject;
+			var g_timer;
+
+		</script>
+
+	</body>
+</html>

@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<!--Copyright 2006 CommerceNet Consortium, LLC.  All rights reserved.-->
+
+<!--This software is published under the terms of the MIT license, a copy-->
+<!--of which has been included with this distribution in the LICENSE file.-->
+
+<hibernate-mapping package="net.commerce.zocalo.user">
+    <class name="SecureUser" table="USERS">
+        <id name="id" column="USER_ID">
+            <generator class="increment"/>
+        </id>
+        <property name="name"/>
+        <property name="email"/>
+        <property name="hashedPassword"/>
+        <many-to-one name="accounts" cascade="all" not-null="true" unique="true" class="net.commerce.zocalo.currency.Accounts" />
+
+    </class>
+</hibernate-mapping>

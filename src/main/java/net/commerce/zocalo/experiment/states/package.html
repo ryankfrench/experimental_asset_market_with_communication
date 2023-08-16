@@ -1,0 +1,61 @@
+se<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+</head>
+<body>
+
+These classes represent the states and state transitions used in experiments.
+There are currently three sets of classes, supporting states for Standard experiments, for Judging experiments,
+and for Voting Experiments.  Standard experiments alternate between trading and displaying scores.  Judging
+adds some participants who don't trade, and who provide estimates of the value of the traded good based on
+trading patterns.  Voting experiments allow the traders to vote on a message to be displayed in a subsequent
+round in order to investigate the effect of communication and exogenous information.<p>
+
+State objects ({@link net.commerce.zocalo.experiment.states.SessionState},
+{@link net.commerce.zocalo.experiment.states.JudgingSessionState},
+{@link net.commerce.zocalo.experiment.states.VotingSessionState}) choose an
+appropriate action for the current state, using
+{@link net.commerce.zocalo.experiment.states.StatusAdaptor StatusAdaptors}
+({@link net.commerce.zocalo.experiment.states.SessionStatusAdaptor},
+{@link net.commerce.zocalo.experiment.states.VotingStatusAdaptor},
+{@link net.commerce.zocalo.experiment.states.JudgingStatusAdaptor}) for the callbacks.
+{@link net.commerce.zocalo.experiment.states.StateHolder StateHolders}
+({@link net.commerce.zocalo.experiment.states.StandardStateHolder},
+{@link net.commerce.zocalo.experiment.states.VotingStateHolder},
+{@link net.commerce.zocalo.experiment.states.JudgingStateHolder}) know what state transitions are allowed,
+and use {@link net.commerce.zocalo.experiment.states.TransitionAdaptor TransitionAdaptors}
+({@link net.commerce.zocalo.experiment.states.JudgingTransitionAdaptor},
+{@link net.commerce.zocalo.experiment.states.VotingTransitionAdaptor}) for the callbacks.<p>
+
+All StateHolder subclasses that will use the standard Session implementation must support the
+standard states: trading and showingScores.  They can add as many other states as are useful.<p>
+
+The idea with the various adaptors is that the caller sets up a callback with messages that are appropriate
+for all the states that matter to it.  When invoked, one of the state-dependent methods will be called.
+{@link net.commerce.zocalo.experiment.states.TransitionAdaptor TransitionAdaptors} are provide when requesting a
+    state transition. If the transition is successful (if the
+    StateHolder's currentState returns true to the transition request message), then the transition will be
+    made and the adaptor called to invoke any necessary processing at the transition.
+{@link net.commerce.zocalo.experiment.states.StatusAdaptor StatusAdaptors} are useful for taking an action
+    if a particular state is active.  The callback is only invoked in the appropriate state.
+The abstract implementations (
+    {@link net.commerce.zocalo.experiment.states.NoActionStatusAdaptor}
+    {@link net.commerce.zocalo.experiment.states.NoActionJudgingStatusAdaptor},
+    {@link net.commerce.zocalo.experiment.states.NoActionVotingStatusAdaptor},
+    {@link net.commerce.zocalo.experiment.states.NoActionTransitionAdaptor}
+    {@link net.commerce.zocalo.experiment.states.NoActionVotingTransitionAdaptor},
+    {@link net.commerce.zocalo.experiment.states.NoActionJudgingTransitionAdaptor})
+    of the adaptors take no action, so concrete classes only have to implement
+any methods that need to take an action.  There is often only one method to implement.
+<p>
+
+<br><table border=1 align=center> <tr><td valign=middle>
+&copy; Copyright 2008 Chris Hibbert.  All rights reserved.<br>
+<p>
+This software is published under the terms of the MIT license, a copy <br>
+of which has been included with this distribution in the LICENSE file.
+</td> </tr></table>
+<br>
+
+</body>
+</html>

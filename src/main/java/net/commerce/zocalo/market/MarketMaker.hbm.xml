@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<!--Copyright 2009 Chris Hibbert.  All rights reserved.-->
+<!--Copyright 2006 CommerceNet Consortium, LLC.  All rights reserved.-->
+
+<!--This software is published under the terms of the MIT license, a copy-->
+<!--of which has been included with this distribution in the LICENSE file.-->
+
+<hibernate-mapping package="net.commerce.zocalo.market">
+    <class name="MarketMaker" table="MARKETMAKER">
+        <id name="id" column="MARKETMAKER_ID">
+            <generator class="increment"/>
+        </id>
+
+        <discriminator column="MarketMaker_TYPE" type="string"/>
+
+        <component name="beta" class="net.commerce.zocalo.currency.Quantity" unique="false">
+            <property column="beta" name="quant"/>
+        </component>
+        <many-to-one name="market" unique="true" not-null="true" class="Market" />
+        <many-to-one name="accounts" cascade="all" unique="true" not-null="true" class="net.commerce.zocalo.currency.Accounts" />
+
+        <subclass name="BinaryMarketMaker" discriminator-value="Bin" >
+            <component name="probability" class="net.commerce.zocalo.currency.Probability" unique="false">
+                <property column="probability" name="quant" />
+            </component>
+        </subclass>
+
+        <subclass name="MultiMarketMaker" discriminator-value="Multi">
+            <map name="probabilities" lazy="true" table="MM_Probabilities">
+                <key column="MARKETMAKER_ID"/>
+                <map-key-many-to-many column="POSITIONS_ID" class="net.commerce.zocalo.claim.Position" />
+                <composite-element class="net.commerce.zocalo.currency.Probability">
+                    <property column="probability" name="quant" />
+                </composite-element>
+            </map>
+        </subclass>
+
+    </class>
+</hibernate-mapping>

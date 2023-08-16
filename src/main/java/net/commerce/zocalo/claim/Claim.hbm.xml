@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<!--Copyright 2008 Chris Hibbert.  All rights reserved.-->
+<!--Copyright 2006 CommerceNet Consortium, LLC.  All rights reserved.-->
+
+<!--This software is published under the terms of the MIT license, a copy-->
+<!--of which has been included with this distribution in the LICENSE file.-->
+
+<hibernate-mapping package="net.commerce.zocalo.claim">
+    <class name="Claim" table="CLAIMS" discriminator-value="CLAIMS">
+        <id name="id" column="CLAIMS_ID">
+            <generator class="increment"/>
+        </id>
+
+        <discriminator column="CLAIM_TYPE" type="string"/>
+
+        <property name="name"/>
+        <many-to-one name="owner" not-null="true" class="net.commerce.zocalo.user.SecureUser"/>
+        <property name="description"/>
+        <list name="positions" cascade="all" >
+            <key column="CLAIMS_ID"/>
+            <list-index column="idx" />
+            <one-to-many class="Position" />
+        </list>
+
+        <subclass name="BinaryClaim" discriminator-value="BIN" />
+        <subclass name="MultiClaim" discriminator-value="Multi" />
+
+    </class>
+</hibernate-mapping>

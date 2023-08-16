@@ -1,0 +1,27 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+</head>
+<body>
+
+{@link net.commerce.zocalo.hibernate.HibernateUtil} is a helper class for storing objects persistently
+using <a href="http://hibernate.org">Hibernate</a>.<p>
+
+The design allows a test version to be invoked at run time, so that hibernate calls in production code
+will not invoke database actions in non-persistent tests.  If the test version is initialized with a
+non-persistent SessionFactory, then the currentSession() call will invoke a MockSession rather than a
+real one, and calls to session.save() or session.beginTransaction().commit() will not invoke db activity.<p>
+
+{@link net.commerce.zocalo.hibernate.HibernateUtil#addClasses(Configuration)} should have a line added for each new
+persistent class that is created.  Test-only classes should be described in HibernateTestUtil instead.
+
+<table border=1 align=center> <tr><td>
+&copy; Copyright 2007 Chris Hibbert.  All rights reserved.<br>
+&copy; 2006 CommerceNet Consortium, LLC.
+<p>
+This software is published under the terms of the MIT license, a copy <br>
+of which has been included with this distribution in the LICENSE file.
+</td> </tr></table>
+<br>
+</body>
+</html>

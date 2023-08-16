@@ -1,0 +1,80 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+</head>
+<body>
+
+<img src="http://zocalo.sourceforge.net/images/logo.zocalo-trans.png" height=81 width=250>
+
+Zocalo Open Source Prediction Markets.  This software supports
+Prediction Markets and laboratory economics experiments.  More information, including downloadable files and complete source
+code are available at <a href="http://zocalo.sourceforge.net">sourceforge</a>.
+
+<p>The core of the Zocalo software consists of a variety of 
+{@link net.commerce.zocalo.market Markets}, which allow 
+{@link net.commerce.zocalo.user Users} to  trade 
+{@link net.commerce.zocalo.claim.Claim Claims} (which have
+{@link net.commerce.zocalo.claim.Position Positions} representing particular outcomes).
+{@link net.commerce.zocalo.currency.Coupons} represent holdings of particular Positions, which can be bought with
+{@link net.commerce.zocalo.currency.Funds}, which represent money. 
+{@link net.commerce.zocalo.currency.Currency} represents the common elements of Funds and Coupons.
+
+<p>There are three types of Markets:
+{@link net.commerce.zocalo.market.BinaryMarket BinaryMarkets} are used for prediction markets with two possible outcomes (usually YES and NO),
+{@link net.commerce.zocalo.market.MultiMarket MultiMarkets} are for prediction markets with two or more mutually exclusive outcomes, and
+{@link net.commerce.zocalo.market.UnaryMarket UnaryMarkets} allow for conventional trading of a single asset.  These markets can be managed with a
+{@link net.commerce.zocalo.market.MarketMaker} that trades with Users directly, or a
+{@link net.commerce.zocalo.market.Book} that tracks Users' standing limit
+{@link net.commerce.zocalo.orders.Order Orders} that other Users are allowed to accept.  BinaryMarkets can be
+set up with both Book and MarketMaker enabled simultaneously.
+
+<p>There are two primary user interfaces for interacting with the markets.  The primary one is ordinary prediction markets, managed by
+{@link net.commerce.zocalo.service.MarketOwner} and
+{@link net.commerce.zocalo.service.AllMarkets}.  A variety of
+{@link net.commerce.zocalo.JspSupport web pages} allows users to navigate between different markets of various types, look at the user's
+{@link net.commerce.zocalo.JspSupport.TradeHistory trading history},
+{@link net.commerce.zocalo.JspSupport.MarketCreation create new markets}, etc.  The other major interface supports trading
+in economic lab experiments.  An
+{@link net.commerce.zocalo.JspSupport.ExperimenterScreen experimenter} configures an experiment, which consists of a number
+of timed rounds in which Users are assigned initial positions in an artificial good, and allowed to trade with other Users.
+
+<p>The Experiment version relies heavily on AJAX to drive the user interfaces and ensure users see other's trades and changes
+in their holdings immediately.  In this version, trades are drawn using
+"stripcharts" that display a trade per column without regard for timing.   The prediction
+market version uses a database to store all the required information
+{@link net.commerce.zocalo.hibernate persistently} (using 
+<a  href='http://hibernate.org'>Hibernate</a>) for long-lived experiments.  The prediction market version displays trading history
+using graphs generated with <a  href='http://www.jfree.org/jfreechart/'>JFreeChart</a>.
+
+<p>HTML pages are generated using JSP, though most of the actual content is {@link net.commerce.zocalo.html generated} directly in Java.
+
+<p>The Zocalo server uses <a  href='www.mortbay.org/'>Jetty</a> to act as a web server.  The main() entry points are provided by
+{@link net.commerce.zocalo.service.AllMarkets} and
+{@link net.commerce.zocalo.experiment.ExperimentServer}, which use helper classes to set up the 
+{@link net.commerce.zocalo.service.ServletUtil Servlets} and 
+{@link net.commerce.zocalo.service.CometServer AJAX connections}.  AJAX is available in the Prediction Market version, though it
+isn't used extensively yet.
+
+<p>The project uses <a  href='logging.apache.org/log4j/'>Log4J</a>, both to
+{@link net.commerce.zocalo.logging log trading activity} and as a
+{@link net.commerce.zocalo.ajax.dispatch transport mechanism} for {@link net.commerce.zocalo.ajax.events events}
+that trigger AJAX activity.  Extensive <a  href='www.junit.org/'>JUnit</a> tests
+<a  href='http://zocalo.svn.sourceforge.net/viewvc/zocalo/trunk/devel/test/net/commerce/zocalo/'>
+exercise</a> nearly all of the functionality of Zocalo, though there is no javadoc coverage of these classes.
+
+A little documentation exists on the use of Hibernate.  There's an ORM-based
+<a  href='http://zocalo.svn.sourceforge.net/viewvc/zocalo/trunk/devel/doc/ORM-ClassDiagram.pdf'>
+class diagram</a>, and an 
+<a  href='http://zocalo.svn.sourceforge.net/viewvc/zocalo/trunk/devel/doc/HibernateMappingStrategies.txt'>
+outline</a> of some considerations in the use of Hibernate.
+
+<br><table border=1 align=center> <tr><td valign=middle>
+&copy; Copyright 2007-2011 Chris Hibbert.  All rights reserved.  <br>Portions Copyright 2005, 2006 CommerceNet Consortium LLC.
+<p>
+This software is published under the terms of the MIT license, a copy <br>
+of which has been included with this distribution in the LICENSE file.
+</td> </tr></table>
+<br>
+
+</body>
+</html>

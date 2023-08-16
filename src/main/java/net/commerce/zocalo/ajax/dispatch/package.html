@@ -1,0 +1,269 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+</head>
+<body>
+
+This package allows Zocalo to publish significant events via <a href="http://logging.apache.org/log4j">Log4J</a>
+and <a href="http://cometdd.org/">cometd</a> (an AJAX technology). The events
+(in {@link net.commerce.zocalo.ajax.events events}) are used to add information to the log,
+to store records in the database, to update the strip chart showing bidding activity to experimental subjects, and
+to notify the UI of significant events.  Log4J provides a general framework for connecting together reports of events
+that can be output in a variety of formats and piped dynamically without changing the call site.<p>
+
+There are two hierarchies here: {@link net.commerce.zocalo.ajax.dispatch.Dispatcher Dispatchers}, and Appenders.  The
+Appenders are specializations of Log4J's {@link org.apache.log4j.AppenderSkeleton}.
+Dispatchers marshall events and publish them via cometd. <p>
+
+The Log4J framework is used to distribute the actions to cometd, to Zocalo's own Log4J logs, and to produce
+records of transactions in the database for the prediction market. The Appenders provide the connection between
+Log4J and cometd by registering an interest in particular Log4J channels, and when events arrive, publishing
+them to cometd using the Dispatchers.<p>
+
+{@link net.commerce.zocalo.ajax.dispatch.PriceActionAppender} is interested in trades and other changes in prices including new bids
+({@link net.commerce.zocalo.ajax.events.Bid} and {@link net.commerce.zocalo.ajax.events.Ask}), retracted bids
+({@link net.commerce.zocalo.ajax.events.OrderRemoval} and {@link net.commerce.zocalo.ajax.events.SelfDealing}), changes in the
+best bid and ask ({@link net.commerce.zocalo.ajax.events.BestBid}, and
+{@link net.commerce.zocalo.ajax.events.BestAsk}), and completed trades ({@link net.commerce.zocalo.ajax.events.Trade}). The
+other Appender is {@link net.commerce.zocalo.ajax.dispatch.TransitionAppender}, which is interested in
+{@link net.commerce.zocalo.ajax.events.Transition} actions affecting experiments.<p>
+
+The Dispatchers marshall the events and send them on to cometd.
+{@link net.commerce.zocalo.ajax.dispatch.TradeEventDispatcher} deals with events representing trades that have taken place,
+{@link net.commerce.zocalo.ajax.dispatch.BidUpdateDispatcher} handles events that involve changing the active bids
+displayed on the stripchart, and {@link net.commerce.zocalo.ajax.dispatch.TransitionDispatcher} handles events that
+represent state transitions in experiment sessions which have effects in the browser that go beyond the strip chart.<p>
+
+<h2>Event Flow</h2>
+
+{@link net.commerce.zocalo.ajax.events Event}) objects are created when something significant happens in the server.<p>
+
+Events are instances of subclasses of {@link net.commerce.zocalo.ajax.events.Action}, which extends
+{@link org.apache.log4j.spi.LoggingEvent}. This makes it possible for them to be handed directly to a
+logger which causes them to be passed as an argument to the AppenderSkeleton's
+{@link org.apache.log4j.AppenderSkeleton#append(org.apache.log4j.spi.LoggingEvent) append(LoggingEvent)}. method.<p>
+
+Log4j provides AppenderSkeleton, which is the prototype for Appenders that consume Events.  Zocalo's Appenders format
+the events and distribute them to {@link net.commerce.zocalo.ajax.dispatch.Dispatcher Dispatchers}.  The dispatchers
+have a reference to a bayeux channel (<a href='http://cometdproject.dojotoolkit.org/'>Bayeux</a> is a protocol that supports
+<a href='http://en.wikipedia.org/wiki/Comet_(programming)'>AJAX</a>-style browser intereactions.)  The dispatchers can
+marshall events and thereby publish them to AJAX.  There's also a {@link net.commerce.zocalo.ajax.dispatch.MockBayeux}
+and {@link net.commerce.zocalo.ajax.dispatch.MockBayeuxChannel} that allows Zocalo to collect events internally when necessary.<p>
+
+Each Appender has one or more Dispatcher.  The Appenders react to specific server-side events, and distribute them to
+their dispatchers.  The dispatchers represent a particular channel distributing messages for a set of clients. This
+allows javascript in the browser to specify which set of events it wants to consume and assign a handler method in
+the browser to be invoked when a message of interest arrives.<p>
+
+Here are three example cases.  PriceChange events are generated during experiments whenever there's a change is the set
+of bids in the book, and are used in the browser to trigger updating the candle chart displaying all the outstanding offers.
+(They are distinct from Trades, which only occur when an actual trade takes place, and cause a new historical price to be
+displayed, and the candle moved right.)  IndividualTimingEvents are distributed directly to a particular user (a Judge)
+when a timer expires.  In the browser, we can then disable the judge's inputbox for entering price estimates.  This only
+affects one experiment subject.  The third case is used to update price charts after a trade in a prediction market.
+It takes a significant amount of time to compute the price charts, so we have a separate thread generating them, and
+once the chart is ready, we send out an update to all the browsers viewing that market so they can request a new copy.
+Since this is a simple image refresh, Jetty can handle it in parallel with the continuing market activity.<p>
+
+The table shows the current events and how and where the code sets up the path they traverse.  For each, we show
+
+<ol>
+  <li>The use of the event.
+  <li>the event object and where it's created
+  <li>the Appender that the event gets registered on.  Notice that PriceActionAppender handles only PriceActions, but has two client Dispatchers.
+  <li>The Logger used.
+  <li>where logger.callAppenders is called to invoke a Dispatcher
+  <li>The Dispatcher and where it's created.
+  <li>Where the dispatcher filters events by market.  (The same logger
+  can be re-used for multiple channels.)
+  <li>The Bayeux channel the Dispatcher publishes events to.
+  <li>Where the javascript subscribes to the Bayeux channel, and the function invoked to handle each event.
+  <li>If the events are also consumed within the server, where the server's subscription appears. (Not listed for Prediction Markets)
+  <li>What use is made of the events within the server.   (Not listed for Prediction Markets)
+  </ol> 
+
+  There are two tables.  The first shows combinations used in
+  Experiments, and the second covers prediction markets.
+
+<table border=1 cellpadding=4 cellspacing=0 width="95%" >
+ <tr >
+  <th >EXPERIMENTS</th>
+  <th >Book Price update  (Exp)</td>
+  <th >Timing Events (Exp)</td>
+  <th >Trade Events   (Exp)</td>
+  <th >Transition Events (Exp)</td>
+ </tr>
+ <tr >
+  <th >Purpose</td>
+  <td >Book Price update: modify candle and current bids and asks</td>
+  <td >Judge timed out</td>
+  <td >Trade took place: add a black dot</td>
+  <td >Experiment transitioned to the next phase </td>
+ </tr>
+ <tr >
+  <th >Event</td>
+  <td >PriceAction created in recordTrade in
+  BinaryMarketMaker or MultiMarketMaker after trade</td>
+  <td >created in TimerTask in Judge.getCutoffTimer()</td>
+  <td >PriceAction created in Binary, Unary, and
+  MultiMarket, in record*Trade()</td>
+  <td >Transition is created in Session.logTransitionEvent()</td>
+ </tr>
+ <tr >
+  <th >Appender</td>
+  <td ><b>PriceActionAppender</b> created in
+  Session.initializeMarket() for bayeux and MockBayeux.</td>
+  <td ><b>PrivateEventAppender</b> created in
+  Session.initializeMarket().</td>
+  <td ><b>PriceActionAppender</b> created in
+  Session.initializeMarket() for bayeux and MockBayeux.</td>
+  <td ><b>TransitionAppender</b> created in
+  Session.initializeTransitionAppender().</td>
+ </tr>
+ <tr >
+  <th >Logger</td>
+  <td >PriceAction.class</td>
+  <td >IndividualTimingEvent.class</td>
+  <td >PriceAction.class</td>
+  <td >Transition.class</td>
+ </tr>
+ <tr >
+  <th >callAppenders()</td>
+  <td >PriceAction.log() called in event constructor, which uses Logger(PriceAction.class)</td>
+  <td >in IndividualTimingEvent constructor logger.callAppenders(this);</td>
+  <td >PriceAction.log() called in event constructor, which uses Logger(PriceAction.class)</td>
+  <td >in Transition constructor</td>
+ </tr>
+ <tr >
+  <th >Dispatcher</td>
+  <td >BidUpdateDispatcher created by PriceActionAppender</td>
+  <td >PrivateEventDispatcher created by PrivateEventAppender.  PrivateEventDispatcher uses deliver() to send the message to just one client.</td>
+  <td >PriceActionAppender creates a TradeEventDispatcher</td>
+  <td >TransitionDispatcher created by TransitionAppender</td>
+ </tr>
+ <tr >
+  <th >Bayeux channel</b></td>
+  <td >/<b>liveUpdate</b></td>
+  <td >/service/<b>privateEvent</b></td>
+  <td >/<b>historicalUpdate</b></td>
+  <td >/<b>transition</b></td>
+ </tr>
+ <tr >
+  <th >javascript subscription</td>
+  <td >stripchartframe.html has onload_actions() (called from onload) that calls dojox.cometd.subscribe( &quot;/liveUpdate&quot;, onLiveMessage);</td>
+  <td >JudgeSubFrame.jsp has onload_actions() (called from onload) that calls
+  dojox.cometd.subscribe( &quot;/service/privateEvent&quot;,onPrivateMessage);</td>
+  <td >stripchartframe.html has onload_actions() (called from onload) that calls
+  dojox.cometd.subscribe( &quot;/historicalUpdate&quot;,onHistMessage);</td>
+  <td >stripchartframe.html has onload_actions() (called from onload) that calls dojox.cometd.subscribe( "/transition", onTransitionMessage); </td>
+ </tr>
+ <tr >
+  <th >Server Subscription</td>
+  <td >NONE</td>
+  <td >ExperimentServer. ExperimentBayeuxServer constructor
+  calls subscribe( PrivateEventDispatcher. PRIVATE_EVENT_TOPIC_SUFFIX,
+  &quot;sendPrivateUpdate&quot;)</td>
+  <td >Session.initializeMarket() calls        
+  tradeHistory = (<b>MockBayeuxChannel</b>)
+  sessionHistory.getChannel( TradeEventDispatcher. TRADE_EVENT_TOPIC_SUFFIX,
+  true);</td>
+  <td >NONE</td>
+ </tr>
+ <tr >
+  <th >Server Client</td>
+  <td >NONE</td>
+  <td >redirect to specific client</td>
+  <td >private MockBayeuxChannel tradeHistory;</td>
+  <td >NONE</td>
+ </tr>
+</table>
+
+<p>
+
+<table border=1 cellpadding=4 cellspacing=0 width="95%" >
+ <tr >
+  <th >PREDICTION MARKETS</th>
+  <th >MM Price Update (PM)</td>
+  <th >New Charts  (PM)</td>
+  <th >Transition Events   (PM)</td>
+ </tr>
+ <tr >
+  <th >Purpose</td>
+  <td >Market Maker price update: update prices in table</td>
+  <td >new price chart is ready: refresh</td>
+  <td >A new Market opened, give Users a link</td>
+ </tr>
+ <tr >
+  <th >Event</td>
+  <td >PriceChange created in recordTrade in BinaryMarketMaker or MultiMarketMaker after trade  </td>
+  <td >created in ChartGenerator updateChartFile() and  writeMultiStepChartFile()</td>
+  <td >Transition is created in MarketOwner.newBinaryMarket() or MarketOwner.newMultiMarket()</td>
+ </tr>
+ <tr >
+  <th >Appender</td>
+  <td ><b>PriceChangeAppender</b> created in
+  AllMarkets.MarketBayeuxService (bayeux, marketName). </td>
+  <td ><b>NewChartAppender</b> created in
+  AllMarkets.MarketBayeuxService (bayeux, marketName).</td>
+  <td ><b>TransitionAppender</b> created in
+  MarketBayeuxService constructor().</td>
+ </tr>
+ <tr >
+  <th >Logger</td>
+  <td >PriceChange.class</td>
+  <td >NewChart.class</td>
+  <td >Transition.class</td>
+ </tr>
+ <tr >
+  <th >callAppenders()</td>
+  <td >in PriceChange constructor, calls
+  Logger(PriceChange.class) .callAppenders(this)</td>
+  <td >NewChart constructor </td>
+  <td >Transition constructors</td>
+ </tr>
+ <tr >
+  <th >Dispatcher</td>
+  <td >PriceChangeDispatcher created in PriceChangeAppender
+  constructor</td>
+  <td >NewChartDispatcher created by NewChartAppender</td>
+  <td >TransitionDispatcher created by TransitionAppender</td>
+ </tr>
+ <tr >
+  <th >Filtering</td>
+  <td >PriceChangeDispatcher.publishTransition()</td>
+  <td >NewChartDispatcher.publishTransition()</td>
+  <td >NA</td>
+ </tr>
+ <tr >
+  <th >Bayeux channel</b></td>
+  <td >Dispatcher.buildChannelName() produces /<b>priceChange</b>/ + marketName</td>
+  <td >Dispatcher.buildChannelName() produces /<b>newChart</b>/ + marketName</td>
+  <td >/<b>transition</b></td>
+ </tr>
+ <tr >
+  <th >javascript subscription</td>
+  <td >channels.push(
+  dojox.cometd.subscribe( priceUpdateChannel, onPriceUpdate));</td>
+  <td >purchaseCost.jsp has onload_actions() (called from
+  onload) that calls
+  dojox.cometd.subscribe( /newChart/+claimName, onPriceUpdate);</td>
+  <td >purchaseClaim.jsp and purchaseCost.jsp have onload_actions() (called from onload) that call
+ dojox.cometd.subscribe( "/transition", onTransitionMessage); </td>
+ </tr>
+ <tr >
+</table>
+
+<p>
+
+
+<br><table border=1 align=center> <tr><td valign=middle>
+&copy; Copyright 2007-2009 Chris Hibbert.  All rights reserved.<br>
+&copy; 2006 CommerceNet Consortium, LLC.  
+<p>
+This software is published under the terms of the MIT license, a copy <br>
+of which has been included with this distribution in the LICENSE file.
+</td> </tr></table>
+<br>
+
+</body>
+</html>
