@@ -29,7 +29,7 @@ Zocalo runs on a Java application server and has been tested with Apache Tomcat 
 8. Rename the WAR from `zocalo-1.2.war` to `ROOT.war`
 9. Start Tomcat normally.
 10. Browse to the URL (http://localhost:8080/Experimenter.jsp) locally, replacing `localhost` with the server name when appropriate.
-11. From the Experimenter page, upload a configuration file. Use CONFIGURATION or Chat.txt included in the source code.  CONFIGURATION has detailed comments with more context but Chat.txt was used for experiment sessions.
+11. From the Experimenter page, upload a configuration file. From the config directory in the source, use CONFIGURATION or Chat.txt.  CONFIGURATION has detailed comments with more context but Chat.txt was used for experiment sessions.
 11. Clients can connect two ways: at (http://localhost:8080/Login.jsp) and logging in with a trader name or at (http://localhost:8080/Trader.jsp?userName=trader_name) replacing `localhost` with the server name and `trader_name` with any trader name defined in the configuration file.
 
 The log files for each experiment will be inside of Tomcat's logs directory. They can be downloaded from the Experimenter page after the conclusion of the experiment. If Perl was installed as described in step 2. a .csv file will also be available for download.
