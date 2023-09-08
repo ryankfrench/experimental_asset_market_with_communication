@@ -19,13 +19,17 @@ Alternatively, the code can be built with `Grade 2.5` and `Groovy 2.3.10`. In ei
 
 Zocalo runs on a Java application server and has been tested with Apache Tomcat 8. To install the code:
 
-1. Download the 1.2 WAR from https://github.com/jjdm/zocalo/releases/tag/1.2.
-2. Download Tomcat 8 from https://tomcat.apache.org/download-80.cgi.
-3. Install Tomcat per the instructions.
-4. In Tomcat's webapps folder, rename the ROOT folder to something else - e.g. tomcat.
-5. Copy the downloaded WAR into the Tomcat webapps folder.
-6. Rename the WAR from `zocalo-1.2.war` to `ROOT.war`
-7. Start Tomcat normally.
-8. Browse to the URL (http://localhost:8080/Experimenter.jsp) locally, replacing `localhost` with the server name when appropriate.
+1. Download Perl from https://www.perl.org/get.html.
+2. Install Perl per the instructions.
+3. Download the 1.2 WAR from https://github.com/ryankfrench/experimental_asset_market_with_communication/releases/tag/Final.
+4. Download Tomcat 8 from https://tomcat.apache.org/download-80.cgi.
+5. Install Tomcat per the instructions.
+6. In Tomcat's webapps folder, rename the ROOT folder to something else - e.g. tomcat.
+7. Copy the downloaded WAR into the Tomcat webapps folder.
+8. Rename the WAR from `zocalo-1.2.war` to `ROOT.war`
+9. Start Tomcat normally.
+10. Browse to the URL (http://localhost:8080/Experimenter.jsp) locally, replacing `localhost` with the server name when appropriate.
+11. From the Experimenter page, upload a configuration file. Use CONFIGURATION or Chat.txt included in the source code.  CONFIGURATION has detailed comments with more context but Chat.txt was used for experiment sessions.
+11. Clients can connect two ways: at (http://localhost:8080/Login.jsp) and logging in with a trader name or at (http://localhost:8080/Trader.jsp?userName=trader_name) replacing `localhost` with the server name and `trader_name` with any trader name defined in the configuration file.
 
-The log files for each experiment will be inside of Tomcat's logs directory.
+The log files for each experiment will be inside of Tomcat's logs directory. They can be downloaded from the Experimenter page after the conclusion of the experiment. If Perl was installed as described in step 2. a .csv file will also be available for download.

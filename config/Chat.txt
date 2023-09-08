@@ -1,0 +1,130 @@
+sessionTitle: Chat.12participants.prefixedMSGs.chatfirstmin
+
+rounds: 17
+players: a1,  a2,  a3,  a4,  a5,  a6,  a7,  a8, a9, a10, a11, a12
+
+timeLimit: 6:00
+
+betterPriceRequired: true
+useUnaryAssets: true
+
+roundLabel: Year
+sharesLabel: Certificates
+cashLabel: Francs
+actualValueLabel: <b>Certificate Value this Year</b>
+totalAssetsLabel: <b>Total Franc Balance</b><br><font size='-2'>(Francs + Certificate value)</font>
+
+maxPrice: 600
+maxDividend: 600
+
+initialHint: Trading has not started yet.
+endowment.trader: 1200
+tickets.trader: 4
+
+#showEarnings: false
+
+# display cumulative Profits? Default (if not explicitly set in parameter file) is true
+# do not display for loan treatment
+
+#showCumulativeProfits: false
+
+a1.role = trader
+a2.role = trader
+a3.role = trader
+a4.role = trader
+a5.role = trader
+a6.role = trader
+a7.role = trader
+a8.role = trader
+a9.role = trader
+a10.role = trader
+a11.role = trader
+a12.role = trader
+
+
+# Traders are rewarded for the value of their assets.
+
+
+# These values are specified by round.
+
+commonMessage:        common,	common,	common, common, common, common, common, common, common, common, common, common, common, common, common, common, common
+actualValue:          240,	50,	240,	50,	490,	240,	240,	50,	50,	240,	490,	490,	240,	240,	50,	490,   490
+
+# These values are specified by Player and Round.
+a1.hint:		X,	Z,	X,	Y,	X,	Z,	X,	Y,	Y,	Z,	X,	X,	Z,	X,	Z,	X, 	X
+a2.hint: 		Z,	Y,	Z,	Z,	Y,	X,	Z,	Z,	Z,	X,	Y,	Y,	X,	Z,	Y,	Y, 	Y
+a3.hint: 		X,	Z,	X,	Y,	X,	Z,	X,	Y,	Y,	Z,	X,	X,	Z,	X,	Z,	X, 	X
+a4.hint: 		Z,	Y,	Z,	Z,	Y,	X,	Z,	Z,	Z,	X,	Y,	Y,	X,	Z,	Y,	Y, 	Y
+a5.hint: 		X,	Z,	X,	Y,	X,	Z,	X,	Y,	Y,	Z,	X,	X,	Z,	X,	Z,	X, 	X
+a6.hint: 		Z,	Y,	Z,	Z,	Y,	X,	Z,	Z,	Z,	X,	Y,	Y,	X,	Z,	Y,	Y, 	Y
+a7.hint: 		X,	Z,	X,	Y,	X,	Z,	X,	Y,	Y,	Z,	X,	X,	Z,	X,	Z,	X,     	X
+a8.hint: 		Z,	Y,	Z,	Z,	Y,	X,	Z,	Z,	Z,	X,	Y,	Y,	X,	Z,	Y,	Y,     	Y
+a9.hint: 		X,	Z,	X,	Y,	X,	Z,	X,	Y,	Y,	Z,	X,	X,	Z,	X,	Z,	X,	X
+a10.hint: 		Z,	Y,	Z,	Z,	Y,	X,	Z,	Z,	Z,	X,	Y,	Y,	X,	Z,	Y,	Y, 	Y
+a11.hint: 		X,	Z,	X,	Y,	X,	Z,	X,	Y,	Y,	Z,	X,	X,	Z,	X,	Z,	X, 	X
+a12.hint: 		Z,	Y,	Z,	Z,	Y,	X,	Z,	Z,	Z,	X,	Y,	Y,	X,	Z,	Y,	Y, 	Y
+
+# text labels can be used in hints or commonMessage
+
+X: <font color="red">The certificate is not worth 50 Francs <br/>(Not X-Dividend)</font>
+Y: <font color="red">The certificate is not worth 240 Francs <br/>(Not Y-Dividend)</font>
+Z: <font color="red">The certificate is not worth 490 Francs <br/>(Not Z-Dividend)</font>
+common: Each certificate will be worth 50 (X-Dividend), 240 (Y-Dividend) or 490 (Z-Dividend). If the spinner lands on 1-35, it is X-Dividend; if 36-80, it is Y-Dividend; if 81-100, it is Z-Dividend.
+
+# notZero: The ticket value is not 0.
+
+
+# id.display.id: used for both chat and trading history (future)
+a1.display.id:  H, K, J, L, C, A, H, G, D, L, D, C, K, H, H, F, F
+a2.display.id:  K, E, K, I, L, B, E, F, E, A, F, G, E, L, J, B, D
+a3.display.id:  L, D, F, K, I, D, C, J, A, F, C, B, D, J, K, J, K
+a4.display.id:  F, A, H, G, D, H, D, H, K, G, G, I, C, D, B, D, L
+a5.display.id:  B, C, L, F, F, J, B, A, B, C, B, A, F, I, G, H, I
+a6.display.id:  D, I, A, J, B, K, G, K, H, J, I, K, I, E, F, L, G
+a7.display.id:  E, F, I, D, K, G, K, E, L, B, L, D, H, B, C, C, E
+a8.display.id:  J, H, C, B, H, C, L, D, F, H, E, F, A, A, I, K, C
+a9.display.id:  A, G, B, H, E, L, A, C, C, E, J, H, J, G, A, E, H
+a10.display.id: I, L, G, E, G, F, J, L, G, K, A, L, B, K, L, G, J
+a11.display.id: C, J, D, C, J, E, F, I, J, D, K, E, L, C, E, I, B
+a12.display.id: G, B, E, A, A, I, I, B, I, I, H, J, G, F, D, A, A
+
+
+# is chat enabled for this session; disabled if not set to "true"
+chat.enabled: true
+
+# chat.timing: second ranges for each round; if 0 or blank, then off for the round
+chat.timing: 0-60;0-60;0-60;0-60;0-60;0-60;0-60;0-60;0-60;0-60;0-60;0-60;0-60;0-60;0-60;0-60;0-60
+
+# trading.pauses: when should trading be disabled during a round
+# if blank, then there are NO trading pauses
+#trading.pauses: 15-30,45-60,75-90,105-120,135-150;15-30,45-60,75-90,105-120,135-150;;0-60, 90-120;240-300
+trading.pauses: 0-60;0-60;0-60;0-60;0-60;0-60;0-60;0-60;0-60;0-60;0-60;0-60;0-60;0-60;0-60;0-60;0-60
+
+# contrained choices/messages for chat; order is based on number
+chat.choices.1: The dividend is NOT 50.
+chat.choices.2: The dividend is NOT 240.
+chat.choices.3: The dividend is NOT 490.
+
+# maximum size for free text entry messages
+chat.max.message.size: 160
+
+# which choices should each participant receive each round; free means free text (blank also works)
+a1.chat.choices: 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3
+a2.chat.choices: 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3
+a3.chat.choices: 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3
+a4.chat.choices: 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3
+a5.chat.choices: 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3
+a6.chat.choices: 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3
+a7.chat.choices: 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3
+a8.chat.choices: 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3
+a9.chat.choices: 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3
+a10.chat.choices: 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3
+a11.chat.choices: 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3
+a12.chat.choices: 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3; 1,2,3
+
+# colors for chat - must be in hex format #RRGGBB
+chat.colors.for.choices: #33FF99, #FFFF99, #A3C8FF
+
+# color chart is enabled
+chat.colors.chart.enabled: true
+
